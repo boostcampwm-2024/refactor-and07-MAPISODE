@@ -12,13 +12,17 @@ import com.boostcamp.mapisode.mygroup.model.toGroupUiEpisodeModel
 import com.boostcamp.mapisode.mygroup.model.toGroupUiModel
 import com.boostcamp.mapisode.mygroup.sideeffect.GroupDetailSideEffect
 import com.boostcamp.mapisode.mygroup.state.GroupDetailState
-import com.boostcamp.mapisode.ui.base.UiIntent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -30,58 +34,64 @@ class GroupDetailViewModel @Inject constructor(
 ) : GroupBaseViewModel<GroupDetailIntent, GroupDetailState, GroupDetailSideEffect>(GroupDetailState()) {
 	private val groupId = mutableStateOf("")
 
+	@OptIn(FlowPreview::class)
 	override suspend fun reducer(intent: SharedFlow<GroupDetailIntent>) {
-		intent.collectLatest { uiIntent ->
-			when (uiIntent) {
-				is GroupDetailIntent.InitializeGroupDetail -> {
-					getGroupDetail(uiIntent.groupId)
-				}
+		intent
+			.debounce(100L)
+			.flatMapLatest { value ->
+				flowOf(value).onEach { delay(300) }
+			}
+			.collectLatest { uiIntent ->
+				when (uiIntent) {
+					is GroupDetailIntent.InitializeGroupDetail -> {
+						getGroupDetail(uiIntent.groupId)
+					}
 
-				is GroupDetailIntent.TryGetGroup -> {
-					tryGetGroup()
-				}
+					is GroupDetailIntent.TryGetGroup -> {
+						tryGetGroup()
+					}
 
-				is GroupDetailIntent.TryGetUserInfo -> {
-					setGroupMembersInfo()
-				}
+					is GroupDetailIntent.TryGetUserInfo -> {
+						setGroupMembersInfo()
+					}
 
-				is GroupDetailIntent.OnEditClick -> {
-					sendEffect { GroupDetailSideEffect.NavigateToGroupEditScreen(groupId.value) }
-					delay(100)
-					sendState { copy(isGroupLoading = true) }
-				}
+					is GroupDetailIntent.OnEditClick -> {
+						sendEffect { GroupDetailSideEffect.NavigateToGroupEditScreen(groupId.value) }
+						delay(100)
+						sendState { copy(isGroupLoading = true) }
+					}
 
-				is GroupDetailIntent.OnBackClick -> {
-					sendEffect { GroupDetailSideEffect.NavigateToGroupScreen }
-				}
+					is GroupDetailIntent.OnBackClick -> {
+						sendEffect { GroupDetailSideEffect.NavigateToGroupScreen }
+					}
 
-				is GroupDetailIntent.OnEpisodeClick -> {
-					sendEffect { GroupDetailSideEffect.NavigateToEpisode(uiIntent.episodeId) }
-				}
+					is GroupDetailIntent.OnEpisodeClick -> {
+						sendEffect { GroupDetailSideEffect.NavigateToEpisode(uiIntent.episodeId) }
+					}
 
-				is GroupDetailIntent.OnIssueCodeClick -> {
-					issueInvitationCode()
-				}
+					is GroupDetailIntent.OnIssueCodeClick -> {
+						issueInvitationCode()
+					}
 
-				is GroupDetailIntent.OnGroupOutClick -> {
-					sendEffect { GroupDetailSideEffect.WarnGroupOut }
-				}
+					is GroupDetailIntent.OnGroupOutClick -> {
+						sendEffect { GroupDetailSideEffect.WarnGroupOut }
+					}
 
-				is GroupDetailIntent.OnGroupOutConfirm -> {
-					sendEffect { GroupDetailSideEffect.RemoveDialog }
-					delay(100)
-					leaveGroup()
-				}
+					is GroupDetailIntent.OnGroupOutConfirm -> {
+						sendEffect { GroupDetailSideEffect.RemoveDialog }
+						delay(100)
+						leaveGroup()
+					}
 
-				is GroupDetailIntent.OnGroupOutCancel -> {
-					sendEffect { GroupDetailSideEffect.RemoveDialog }
-				}
+					is GroupDetailIntent.OnGroupOutCancel -> {
+						sendEffect { GroupDetailSideEffect.RemoveDialog }
+					}
 
-				is GroupDetailIntent.TryGetGroupEpisodes -> {
-					getGroupEpisodes()
+					is GroupDetailIntent.TryGetGroupEpisodes -> {
+						getGroupEpisodes()
+					}
 				}
 			}
-		}
 	}
 
 	private fun getGroupDetail(groupId: String) {

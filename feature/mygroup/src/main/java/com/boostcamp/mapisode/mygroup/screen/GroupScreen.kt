@@ -37,7 +37,6 @@ import com.boostcamp.mapisode.mygroup.sideeffect.GroupSideEffect
 import com.boostcamp.mapisode.mygroup.sideeffect.rememberFlowWithLifecycle
 import com.boostcamp.mapisode.mygroup.state.GroupState
 import com.boostcamp.mapisode.mygroup.viewmodel.GroupViewModel
-import timber.log.Timber
 import com.boostcamp.mapisode.mygroup.R as S
 
 @Composable
@@ -106,14 +105,14 @@ private fun <T> GroupScreen(
 
 	MapisodeScaffold(
 		modifier = Modifier
-            .fillMaxSize()
-            .pointerInput(Unit) {
-                detectTapGestures(
-                    onPress = {
-                        focusManager.clearFocus()
-                    },
-                )
-            },
+			.fillMaxSize()
+			.pointerInput(Unit) {
+				detectTapGestures(
+					onPress = {
+						focusManager.clearFocus()
+					},
+				)
+			},
 		isStatusBarPaddingExist = true,
 		topBar = {
 			TopAppBar(

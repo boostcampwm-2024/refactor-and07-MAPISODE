@@ -15,19 +15,19 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-abstract class GroupBaseViewModel<UI_INTENT: UiIntent, UI_STATE: UiState, UI_EFFECT: SideEffect >(
-	initialState: UI_STATE
-): ViewModel() {
+abstract class GroupBaseViewModel<UI_INTENT : UiIntent, UI_STATE : UiState, UI_EFFECT : SideEffect>(
+	initialState: UI_STATE,
+) : ViewModel() {
 	private val _state = MutableStateFlow(initialState)
 	val state = _state.asStateFlow()
-
-	private val _intent = MutableSharedFlow<UI_INTENT>()
 
 	private val _effect = Channel<SideEffect>()
 	val effect = _effect.receiveAsFlow()
 
 	protected val currentState: UI_STATE
 		get() = _state.value
+
+	private val _intent = MutableSharedFlow<UI_INTENT>()
 
 	/**
 	 * initialize the reducer with the intent argument

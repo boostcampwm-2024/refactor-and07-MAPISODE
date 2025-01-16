@@ -7,13 +7,17 @@ import com.boostcamp.mapisode.mygroup.R
 import com.boostcamp.mapisode.mygroup.intent.GroupCreationIntent
 import com.boostcamp.mapisode.mygroup.sideeffect.GroupCreationSideEffect
 import com.boostcamp.mapisode.mygroup.state.GroupCreationState
-import com.boostcamp.mapisode.ui.base.UiIntent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.util.Date
@@ -30,34 +34,39 @@ class GroupCreationViewModel @Inject constructor(
 ) {
 	private val userId: ConcurrentHashMap<String, String> = ConcurrentHashMap()
 
+	@OptIn(FlowPreview::class)
 	override suspend fun reducer(intent: SharedFlow<GroupCreationIntent>) {
-		intent.collectLatest { uiIntent ->
-			when (uiIntent) {
-				GroupCreationIntent.Initialize -> {
-					initializeCreatingGroup()
-				}
+		intent.debounce(100L)
+			.flatMapLatest { value ->
+				flowOf(value).onEach { delay(300) }
+			}
+			.collectLatest { uiIntent ->
+				when (uiIntent) {
+					GroupCreationIntent.Initialize -> {
+						initializeCreatingGroup()
+					}
 
-				GroupCreationIntent.OnBackClick -> {
-					sendEffect { GroupCreationSideEffect.NavigateToGroupScreen }
-				}
+					GroupCreationIntent.OnBackClick -> {
+						sendEffect { GroupCreationSideEffect.NavigateToGroupScreen }
+					}
 
-				is GroupCreationIntent.OnGroupCreationClick -> {
-					checkGroupEdit(uiIntent.title, uiIntent.content, uiIntent.imageUrl)
-				}
+					is GroupCreationIntent.OnGroupCreationClick -> {
+						checkGroupEdit(uiIntent.title, uiIntent.content, uiIntent.imageUrl)
+					}
 
-				is GroupCreationIntent.OnPhotoPickerClick -> {
-					sendState { copy(isSelectingGroupImage = true) }
-				}
+					is GroupCreationIntent.OnPhotoPickerClick -> {
+						sendState { copy(isSelectingGroupImage = true) }
+					}
 
-				is GroupCreationIntent.OnGroupImageSelect -> {
-					imageApply(uiIntent.imageUrl)
-				}
+					is GroupCreationIntent.OnGroupImageSelect -> {
+						imageApply(uiIntent.imageUrl)
+					}
 
-				is GroupCreationIntent.OnBackToGroupCreation -> {
-					sendState { copy(isSelectingGroupImage = false) }
+					is GroupCreationIntent.OnBackToGroupCreation -> {
+						sendState { copy(isSelectingGroupImage = false) }
+					}
 				}
 			}
-		}
 	}
 
 	private fun initializeCreatingGroup() {

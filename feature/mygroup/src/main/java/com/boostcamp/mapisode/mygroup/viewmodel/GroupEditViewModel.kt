@@ -7,11 +7,14 @@ import com.boostcamp.mapisode.mygroup.intent.GroupEditIntent
 import com.boostcamp.mapisode.mygroup.model.toGroupCreationModel
 import com.boostcamp.mapisode.mygroup.sideeffect.GroupEditSideEffect
 import com.boostcamp.mapisode.mygroup.state.GroupEditState
-import com.boostcamp.mapisode.ui.base.UiIntent
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -19,36 +22,41 @@ import javax.inject.Inject
 class GroupEditViewModel @Inject constructor(private val groupRepository: GroupRepository) :
 	GroupBaseViewModel<GroupEditIntent, GroupEditState, GroupEditSideEffect>(GroupEditState()) {
 
+	@OptIn(FlowPreview::class)
 	override suspend fun reducer(intent: SharedFlow<GroupEditIntent>) {
-		intent.collectLatest { uiIntent ->
-			when (uiIntent) {
-				is GroupEditIntent.Initialize -> {
-					initializeCreatingGroup(uiIntent.groupId)
-				}
-
-				is GroupEditIntent.OnBackClick -> {
-					sendEffect { GroupEditSideEffect.NavigateToGroupDetailScreen }
-				}
-
-				is GroupEditIntent.OnGroupEditClick -> {
-					checkGroupEdit(uiIntent.title, uiIntent.content, uiIntent.imageUrl)
-				}
-
-				GroupEditIntent.DenyPhotoPermission -> sendEffect {
-					GroupEditSideEffect.ShowToast(R.string.message_error_permission_denied)
-				}
-
-				is GroupEditIntent.OnGroupImageSelect -> {
-					imageApply(uiIntent.imageUrl)
-				}
-
-				GroupEditIntent.OnPhotoPickerClick -> {
-					sendState { copy(isSelectingGroupImage = true) }
-				}
-
-				GroupEditIntent.OnBackToGroupCreation -> sendState { copy(isSelectingGroupImage = false) }
+		intent.debounce(100L)
+			.flatMapLatest { value ->
+				flowOf(value).onEach { delay(300) }
 			}
-		}
+			.collect { uiIntent ->
+				when (uiIntent) {
+					is GroupEditIntent.Initialize -> {
+						initializeCreatingGroup(uiIntent.groupId)
+					}
+
+					is GroupEditIntent.OnBackClick -> {
+						sendEffect { GroupEditSideEffect.NavigateToGroupDetailScreen }
+					}
+
+					is GroupEditIntent.OnGroupEditClick -> {
+						checkGroupEdit(uiIntent.title, uiIntent.content, uiIntent.imageUrl)
+					}
+
+					GroupEditIntent.DenyPhotoPermission -> sendEffect {
+						GroupEditSideEffect.ShowToast(R.string.message_error_permission_denied)
+					}
+
+					is GroupEditIntent.OnGroupImageSelect -> {
+						imageApply(uiIntent.imageUrl)
+					}
+
+					GroupEditIntent.OnPhotoPickerClick -> {
+						sendState { copy(isSelectingGroupImage = true) }
+					}
+
+					GroupEditIntent.OnBackToGroupCreation -> sendState { copy(isSelectingGroupImage = false) }
+				}
+			}
 	}
 
 	private fun initializeCreatingGroup(groupId: String) {
