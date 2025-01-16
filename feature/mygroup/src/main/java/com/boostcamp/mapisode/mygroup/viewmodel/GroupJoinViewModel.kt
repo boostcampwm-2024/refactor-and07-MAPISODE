@@ -8,12 +8,16 @@ import com.boostcamp.mapisode.mygroup.intent.GroupJoinIntent
 import com.boostcamp.mapisode.mygroup.model.toGroupCreationModel
 import com.boostcamp.mapisode.mygroup.sideeffect.GroupJoinSideEffect
 import com.boostcamp.mapisode.mygroup.state.GroupJoinState
-import com.boostcamp.mapisode.ui.base.UiIntent
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -36,13 +40,16 @@ class GroupJoinViewModel @Inject constructor(
 		}
 	}
 
+	@OptIn(FlowPreview::class)
 	override suspend fun reducer(intent: SharedFlow<GroupJoinIntent>) {
-		viewModelScope.launch {
-			intent.collectLatest { intent ->
-
-				when (intent) {
+		intent.debounce(100L)
+			.flatMapLatest { value ->
+				flowOf(value).onEach { delay(300) }
+			}
+			.collectLatest { uiIntent ->
+				when (uiIntent) {
 					is GroupJoinIntent.TryGetGroup -> {
-						tryGetGroupByGroupId(intent.inviteCode)
+						tryGetGroupByGroupId(uiIntent.inviteCode)
 					}
 
 					is GroupJoinIntent.OnJoinClick -> {
@@ -54,7 +61,6 @@ class GroupJoinViewModel @Inject constructor(
 					}
 				}
 			}
-		}
 	}
 
 	private fun tryGetGroupByGroupId(inviteCodes: String) {

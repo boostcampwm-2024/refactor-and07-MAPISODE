@@ -7,16 +7,16 @@ import com.boostcamp.mapisode.mygroup.R
 import com.boostcamp.mapisode.mygroup.intent.GroupIntent
 import com.boostcamp.mapisode.mygroup.sideeffect.GroupSideEffect
 import com.boostcamp.mapisode.mygroup.state.GroupState
-import com.boostcamp.mapisode.ui.base.UiIntent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.toPersistentList
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -29,26 +29,30 @@ class GroupViewModel @Inject constructor(
 
 	@OptIn(FlowPreview::class)
 	override suspend fun reducer(intent: SharedFlow<GroupIntent>) {
-		intent.debounce(200).collect { uiIntent ->
-			when (uiIntent) {
-				GroupIntent.LoadGroups -> {
-					Timber.e("here")
-					loadGroups()
-				}
+		intent.debounce(100)
+			.flatMapLatest { value ->
+				flowOf(value).onEach { delay(300) }
+			}
+			.collect { uiIntent ->
+				when (uiIntent) {
+					GroupIntent.LoadGroups -> {
+						Timber.e("here")
+						loadGroups()
+					}
 
-				GroupIntent.OnJoinClick -> {
-					navigateToGroupJoinScreen()
-				}
+					GroupIntent.OnJoinClick -> {
+						navigateToGroupJoinScreen()
+					}
 
-				GroupIntent.OnGroupCreateClick -> {
-					navigateToGroupCreationScreen()
-				}
+					GroupIntent.OnGroupCreateClick -> {
+						navigateToGroupCreationScreen()
+					}
 
-				is GroupIntent.OnGroupDetailClick -> {
-					navigateToGroupDetailScreen(uiIntent.groupId)
+					is GroupIntent.OnGroupDetailClick -> {
+						navigateToGroupDetailScreen(uiIntent.groupId)
+					}
 				}
 			}
-		}
 	}
 
 	private fun loadGroups() {
