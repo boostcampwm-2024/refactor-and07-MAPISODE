@@ -64,23 +64,23 @@ fun GroupEditScreen(
 	viewModel: GroupEditViewModel = hiltViewModel(),
 ) {
 	val context = LocalContext.current
-	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+	val uiState by viewModel.state.collectAsStateWithLifecycle()
 	val effect = rememberFlowWithLifecycle(
-		flow = viewModel.sideEffect,
+		flow = viewModel.effect,
 		initialValue = GroupEditSideEffect.Idle,
 	).value
 
 	BackHandler {
 		if (uiState.isSelectingGroupImage) {
-			viewModel.onIntent(GroupEditIntent.OnBackToGroupCreation)
+			viewModel.sendIntent(GroupEditIntent.OnBackToGroupCreation)
 		} else {
-			viewModel.onIntent(GroupEditIntent.OnBackClick)
+			viewModel.sendIntent(GroupEditIntent.OnBackClick)
 		}
 	}
 
 	LaunchedEffect(Unit) {
 		if (!uiState.isInitializing) {
-			viewModel.onIntent(GroupEditIntent.Initialize(edit.groupId))
+			viewModel.sendIntent(GroupEditIntent.Initialize(edit.groupId))
 		}
 	}
 
@@ -102,15 +102,15 @@ fun GroupEditScreen(
 		MapisodePhotoPicker(
 			numOfPhoto = 1,
 			onPhotoSelected = { photoList ->
-				viewModel.onIntent(
+				viewModel.sendIntent(
 					GroupEditIntent.OnGroupImageSelect(
 						photoList.first().uri,
 					),
 				)
 			},
-			onPermissionDenied = { viewModel.onIntent(GroupEditIntent.DenyPhotoPermission) },
+			onPermissionDenied = { viewModel.sendIntent(GroupEditIntent.DenyPhotoPermission) },
 			onBackPressed = {
-				viewModel.onIntent(GroupEditIntent.OnBackToGroupCreation)
+				viewModel.sendIntent(GroupEditIntent.OnBackToGroupCreation)
 			},
 			isCameraNeeded = false,
 		)
@@ -119,7 +119,7 @@ fun GroupEditScreen(
 			uiState = uiState,
 			onBackClick = onBackClick,
 			onGroupEditClick = { title, content, imageUrl ->
-				viewModel.onIntent(
+				viewModel.sendIntent(
 					GroupEditIntent.OnGroupEditClick(
 						title = title,
 						content = content,
@@ -128,7 +128,7 @@ fun GroupEditScreen(
 				)
 			},
 			onPhotoPickerClick = {
-				viewModel.onIntent(GroupEditIntent.OnPhotoPickerClick)
+				viewModel.sendIntent(GroupEditIntent.OnPhotoPickerClick)
 			},
 		)
 	}

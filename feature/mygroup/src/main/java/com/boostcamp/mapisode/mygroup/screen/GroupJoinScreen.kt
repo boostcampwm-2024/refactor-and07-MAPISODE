@@ -58,9 +58,9 @@ fun GroupJoinScreen(
 	viewModel: GroupJoinViewModel = hiltViewModel(),
 ) {
 	val context = LocalContext.current
-	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+	val uiState by viewModel.state.collectAsStateWithLifecycle()
 	val effect = rememberFlowWithLifecycle(
-		flow = viewModel.sideEffect,
+		flow = viewModel.effect,
 		initialValue = GroupJoinSideEffect.Idle,
 	).value
 
@@ -81,13 +81,13 @@ fun GroupJoinScreen(
 	GroupJoinContent(
 		uiState = uiState,
 		onBackClick = {
-			viewModel.onIntent(intent = GroupJoinIntent.OnBackClick)
+			viewModel.sendIntent(intent = GroupJoinIntent.OnBackClick)
 		},
 		onGetGroup = { joinCodeText ->
-			viewModel.onIntent(intent = GroupJoinIntent.TryGetGroup(joinCodeText))
+			viewModel.sendIntent(intent = GroupJoinIntent.TryGetGroup(joinCodeText))
 		},
 		onJoinGroup = {
-			viewModel.onIntent(intent = GroupJoinIntent.OnJoinClick)
+			viewModel.sendIntent(intent = GroupJoinIntent.OnJoinClick)
 		},
 	)
 }
