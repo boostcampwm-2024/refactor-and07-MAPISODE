@@ -37,6 +37,7 @@ import com.boostcamp.mapisode.mygroup.sideeffect.GroupSideEffect
 import com.boostcamp.mapisode.mygroup.sideeffect.rememberFlowWithLifecycle
 import com.boostcamp.mapisode.mygroup.state.GroupState
 import com.boostcamp.mapisode.mygroup.viewmodel.GroupViewModel
+import timber.log.Timber
 import com.boostcamp.mapisode.mygroup.R as S
 
 @Composable
@@ -47,9 +48,9 @@ internal fun MainGroupRoute(
 	viewModel: GroupViewModel = hiltViewModel(),
 ) {
 	val context = LocalContext.current
-	val uiState = viewModel.uiState.collectAsStateWithLifecycle()
+	val uiState = viewModel.state.collectAsStateWithLifecycle()
 	val effect = rememberFlowWithLifecycle(
-		flow = viewModel.sideEffect,
+		flow = viewModel.effect,
 		initialValue = GroupSideEffect.Idle,
 	).value
 
@@ -75,21 +76,19 @@ internal fun MainGroupRoute(
 		}
 	}
 
-	LaunchedEffect(uiState.value) {
-		if (uiState.value.isInitializing) {
-			viewModel.onIntent(GroupIntent.LoadGroups)
-		}
+	LaunchedEffect(Unit) {
+		viewModel.sendIntent(GroupIntent.LoadGroups)
 	}
 
 	GroupScreen(
 		onGroupJoinClick = {
-			viewModel.onIntent(GroupIntent.OnJoinClick)
+			viewModel.sendIntent(GroupIntent.OnJoinClick)
 		},
 		onGroupDetailClick = { groupId ->
-			viewModel.onIntent(GroupIntent.OnGroupDetailClick(groupId))
+			viewModel.sendIntent(GroupIntent.OnGroupDetailClick(groupId))
 		},
 		onGroupCreationClick = {
-			viewModel.onIntent(GroupIntent.OnGroupCreateClick)
+			viewModel.sendIntent(GroupIntent.OnGroupCreateClick)
 		},
 		uiState = uiState,
 	)
@@ -107,14 +106,14 @@ private fun <T> GroupScreen(
 
 	MapisodeScaffold(
 		modifier = Modifier
-			.fillMaxSize()
-			.pointerInput(Unit) {
-				detectTapGestures(
-					onPress = {
-						focusManager.clearFocus()
-					},
-				)
-			},
+            .fillMaxSize()
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onPress = {
+                        focusManager.clearFocus()
+                    },
+                )
+            },
 		isStatusBarPaddingExist = true,
 		topBar = {
 			TopAppBar(

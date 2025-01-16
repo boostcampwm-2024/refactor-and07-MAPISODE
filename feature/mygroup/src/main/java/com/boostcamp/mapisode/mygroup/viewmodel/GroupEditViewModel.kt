@@ -7,43 +7,47 @@ import com.boostcamp.mapisode.mygroup.intent.GroupEditIntent
 import com.boostcamp.mapisode.mygroup.model.toGroupCreationModel
 import com.boostcamp.mapisode.mygroup.sideeffect.GroupEditSideEffect
 import com.boostcamp.mapisode.mygroup.state.GroupEditState
-import com.boostcamp.mapisode.ui.base.BaseViewModel
+import com.boostcamp.mapisode.ui.base.UiIntent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class GroupEditViewModel @Inject constructor(private val groupRepository: GroupRepository) :
-	BaseViewModel<GroupEditIntent, GroupEditState, GroupEditSideEffect>(GroupEditState()) {
+	GroupBaseViewModel<GroupEditIntent, GroupEditState, GroupEditSideEffect>(GroupEditState()) {
 
-	override fun onIntent(intent: GroupEditIntent) {
-		when (intent) {
-			is GroupEditIntent.Initialize -> {
-				initializeCreatingGroup(intent.groupId)
+	override suspend fun reducer(intent: SharedFlow<GroupEditIntent>) {
+		intent.collectLatest { uiIntent ->
+			when (uiIntent) {
+				is GroupEditIntent.Initialize -> {
+					initializeCreatingGroup(uiIntent.groupId)
+				}
+
+				is GroupEditIntent.OnBackClick -> {
+					sendEffect { GroupEditSideEffect.NavigateToGroupDetailScreen }
+				}
+
+				is GroupEditIntent.OnGroupEditClick -> {
+					checkGroupEdit(uiIntent.title, uiIntent.content, uiIntent.imageUrl)
+				}
+
+				GroupEditIntent.DenyPhotoPermission -> sendEffect {
+					GroupEditSideEffect.ShowToast(R.string.message_error_permission_denied)
+				}
+
+				is GroupEditIntent.OnGroupImageSelect -> {
+					imageApply(uiIntent.imageUrl)
+				}
+
+				GroupEditIntent.OnPhotoPickerClick -> {
+					sendState { copy(isSelectingGroupImage = true) }
+				}
+
+				GroupEditIntent.OnBackToGroupCreation -> sendState { copy(isSelectingGroupImage = false) }
 			}
-
-			is GroupEditIntent.OnBackClick -> {
-				postSideEffect(GroupEditSideEffect.NavigateToGroupDetailScreen)
-			}
-
-			is GroupEditIntent.OnGroupEditClick -> {
-				checkGroupEdit(intent.title, intent.content, intent.imageUrl)
-			}
-
-			GroupEditIntent.DenyPhotoPermission -> postSideEffect(
-				GroupEditSideEffect.ShowToast(R.string.message_error_permission_denied),
-			)
-
-			is GroupEditIntent.OnGroupImageSelect -> {
-				imageApply(intent.imageUrl)
-			}
-
-			GroupEditIntent.OnPhotoPickerClick -> {
-				intent { copy(isSelectingGroupImage = true) }
-			}
-
-			GroupEditIntent.OnBackToGroupCreation -> intent { copy(isSelectingGroupImage = false) }
 		}
 	}
 
@@ -51,21 +55,21 @@ class GroupEditViewModel @Inject constructor(private val groupRepository: GroupR
 		viewModelScope.launch {
 			try {
 				val group = groupRepository.getGroupByGroupId(groupId).toGroupCreationModel()
-				intent {
+				sendState {
 					copy(
 						isInitializing = true,
 						group = group,
 					)
 				}
 			} catch (e: Exception) {
-				postSideEffect(GroupEditSideEffect.ShowToast(R.string.group_load_failure))
+				sendEffect { GroupEditSideEffect.ShowToast(R.string.group_load_failure) }
 			}
 		}
 	}
 
 	private fun imageApply(imageUrl: String) {
 		viewModelScope.launch {
-			intent {
+			sendState {
 				copy(
 					isSelectingGroupImage = false,
 					group = group.copy(imageUrl = imageUrl),
@@ -78,19 +82,19 @@ class GroupEditViewModel @Inject constructor(private val groupRepository: GroupR
 		viewModelScope.launch {
 			try {
 				if (title.length !in 2..24) {
-					postSideEffect(
-						GroupEditSideEffect.ShowToast(R.string.message_error_title_length),
-					)
+					sendEffect {
+						GroupEditSideEffect.ShowToast(R.string.message_error_title_length)
+					}
 				} else if (content.isEmpty()) {
-					postSideEffect(
-						GroupEditSideEffect.ShowToast(R.string.message_error_content_empty),
-					)
+					sendEffect {
+						GroupEditSideEffect.ShowToast(R.string.message_error_content_empty)
+					}
 				} else if (imageUrl.isBlank()) {
-					postSideEffect(
-						GroupEditSideEffect.ShowToast(R.string.message_error_image_url_blank),
-					)
+					sendEffect {
+						GroupEditSideEffect.ShowToast(R.string.message_error_image_url_blank)
+					}
 				} else {
-					intent {
+					sendState {
 						copy(
 							group = group.copy(
 								name = title,
@@ -100,16 +104,16 @@ class GroupEditViewModel @Inject constructor(private val groupRepository: GroupR
 						)
 					}
 					groupRepository.updateGroup(currentState.group.toGroupModel())
-					postSideEffect(
-						GroupEditSideEffect.ShowToast(R.string.message_success_edit_group),
-					)
+					sendEffect {
+						GroupEditSideEffect.ShowToast(R.string.message_success_edit_group)
+					}
 					delay(100)
-					postSideEffect(GroupEditSideEffect.NavigateToGroupDetailScreen)
+					sendEffect { GroupEditSideEffect.NavigateToGroupDetailScreen }
 				}
 			} catch (e: Exception) {
-				postSideEffect(GroupEditSideEffect.ShowToast(R.string.message_error_edit_group))
+				sendEffect { GroupEditSideEffect.ShowToast(R.string.message_error_edit_group) }
 				delay(100)
-				postSideEffect(GroupEditSideEffect.Idle)
+				sendEffect { GroupEditSideEffect.Idle }
 			}
 		}
 	}

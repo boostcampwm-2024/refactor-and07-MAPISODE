@@ -7,36 +7,46 @@ import com.boostcamp.mapisode.mygroup.R
 import com.boostcamp.mapisode.mygroup.intent.GroupIntent
 import com.boostcamp.mapisode.mygroup.sideeffect.GroupSideEffect
 import com.boostcamp.mapisode.mygroup.state.GroupState
-import com.boostcamp.mapisode.ui.base.BaseViewModel
+import com.boostcamp.mapisode.ui.base.UiIntent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.toPersistentList
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
 class GroupViewModel @Inject constructor(
 	private val groupRepository: GroupRepository,
 	private val userPreferenceDataStore: UserPreferenceDataStore,
-) : BaseViewModel<GroupIntent, GroupState, GroupSideEffect>(GroupState()) {
+) : GroupBaseViewModel<GroupIntent, GroupState, GroupSideEffect>(GroupState()) {
 
-	override fun onIntent(intent: GroupIntent) {
-		when (intent) {
-			is GroupIntent.LoadGroups -> {
-				loadGroups()
-			}
+	@OptIn(FlowPreview::class)
+	override suspend fun reducer(intent: SharedFlow<GroupIntent>) {
+		intent.debounce(200).collect { uiIntent ->
+			when (uiIntent) {
+				GroupIntent.LoadGroups -> {
+					Timber.e("here")
+					loadGroups()
+				}
 
-			is GroupIntent.OnJoinClick -> {
-				navigateToGroupJoinScreen()
-			}
+				GroupIntent.OnJoinClick -> {
+					navigateToGroupJoinScreen()
+				}
 
-			is GroupIntent.OnGroupCreateClick -> {
-				navigateToGroupCreationScreen()
-			}
+				GroupIntent.OnGroupCreateClick -> {
+					navigateToGroupCreationScreen()
+				}
 
-			is GroupIntent.OnGroupDetailClick -> {
-				navigateToGroupDetailScreen(intent.groupId)
+				is GroupIntent.OnGroupDetailClick -> {
+					navigateToGroupDetailScreen(uiIntent.groupId)
+				}
 			}
 		}
 	}
@@ -48,39 +58,41 @@ class GroupViewModel @Inject constructor(
 				val group = groupRepository
 					.getGroupsByUserId(userId)
 					.toPersistentList()
-				intent {
+				sendState {
 					copy(
 						isInitializing = false,
 						groups = group,
 					)
 				}
+				Timber.e("here")
 			} catch (e: Exception) {
-				postSideEffect(GroupSideEffect.ShowToast(R.string.group_load_failure))
+				sendEffect { GroupSideEffect.ShowToast(R.string.group_load_failure) }
 			}
 		}
 	}
 
 	private fun navigateToGroupJoinScreen() {
 		viewModelScope.launch {
-			postSideEffect(GroupSideEffect.NavigateToGroupJoinScreen)
+			sendEffect { GroupSideEffect.NavigateToGroupJoinScreen }
 			delay(100)
-			intent { copy(isInitializing = true) }
+			sendState { copy(isInitializing = true) }
 		}
 	}
 
 	private fun navigateToGroupCreationScreen() {
 		viewModelScope.launch {
-			postSideEffect(GroupSideEffect.NavigateToGroupCreateScreen)
+			sendEffect { GroupSideEffect.NavigateToGroupCreateScreen }
 			delay(100)
-			intent { copy(isInitializing = true) }
+			sendState { copy(isInitializing = true) }
 		}
 	}
 
 	private fun navigateToGroupDetailScreen(groupId: String) {
 		viewModelScope.launch {
-			postSideEffect(GroupSideEffect.NavigateToGroupDetailScreen(groupId))
+			Timber.e("here2")
+			sendEffect { GroupSideEffect.NavigateToGroupDetailScreen(groupId) }
 			delay(100)
-			intent { copy(isInitializing = true) }
+			sendState { copy(isInitializing = true) }
 		}
 	}
 }

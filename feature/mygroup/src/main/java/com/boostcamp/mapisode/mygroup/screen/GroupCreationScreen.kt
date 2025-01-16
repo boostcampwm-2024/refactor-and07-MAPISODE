@@ -60,23 +60,23 @@ fun GroupCreationScreen(
 	viewModel: GroupCreationViewModel = hiltViewModel(),
 ) {
 	val context = LocalContext.current
-	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+	val uiState by viewModel.state.collectAsStateWithLifecycle()
 	val effect = rememberFlowWithLifecycle(
-		flow = viewModel.sideEffect,
+		flow = viewModel.effect,
 		initialValue = GroupCreationSideEffect.Idle,
 	).value
 
 	BackHandler {
 		if (uiState.isSelectingGroupImage) {
-			viewModel.onIntent(GroupCreationIntent.OnBackToGroupCreation)
+			viewModel.sendIntent(GroupCreationIntent.OnBackToGroupCreation)
 		} else {
-			viewModel.onIntent(GroupCreationIntent.OnBackClick)
+			viewModel.sendIntent(GroupCreationIntent.OnBackClick)
 		}
 	}
 
 	LaunchedEffect(Unit) {
 		if (!uiState.isInitializing) {
-			viewModel.onIntent(GroupCreationIntent.Initialize)
+			viewModel.sendIntent(GroupCreationIntent.Initialize)
 		}
 	}
 
@@ -98,15 +98,15 @@ fun GroupCreationScreen(
 		MapisodePhotoPicker(
 			numOfPhoto = 1,
 			onPhotoSelected = { photoList ->
-				viewModel.onIntent(
+				viewModel.sendIntent(
 					GroupCreationIntent.OnGroupImageSelect(
 						photoList.first().uri,
 					),
 				)
 			},
-			onPermissionDenied = { viewModel.onIntent(GroupCreationIntent.OnBackToGroupCreation) },
+			onPermissionDenied = { viewModel.sendIntent(GroupCreationIntent.OnBackToGroupCreation) },
 			onBackPressed = {
-				viewModel.onIntent(GroupCreationIntent.OnBackToGroupCreation)
+				viewModel.sendIntent(GroupCreationIntent.OnBackToGroupCreation)
 			},
 			isCameraNeeded = false,
 		)
@@ -115,7 +115,7 @@ fun GroupCreationScreen(
 			imageUrl = uiState.group.imageUrl,
 			onBackClick = onBackClick,
 			onGroupEditClick = { title, content, imageUrl ->
-				viewModel.onIntent(
+				viewModel.sendIntent(
 					GroupCreationIntent.OnGroupCreationClick(
 						title = title,
 						content = content,
@@ -124,7 +124,7 @@ fun GroupCreationScreen(
 				)
 			},
 			onPhotoPickerClick = {
-				viewModel.onIntent(GroupCreationIntent.OnPhotoPickerClick)
+				viewModel.sendIntent(GroupCreationIntent.OnPhotoPickerClick)
 			},
 		)
 	}

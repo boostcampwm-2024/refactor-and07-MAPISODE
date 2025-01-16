@@ -7,10 +7,12 @@ import com.boostcamp.mapisode.mygroup.R
 import com.boostcamp.mapisode.mygroup.intent.GroupCreationIntent
 import com.boostcamp.mapisode.mygroup.sideeffect.GroupCreationSideEffect
 import com.boostcamp.mapisode.mygroup.state.GroupCreationState
-import com.boostcamp.mapisode.ui.base.BaseViewModel
+import com.boostcamp.mapisode.ui.base.UiIntent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -23,35 +25,37 @@ import javax.inject.Inject
 class GroupCreationViewModel @Inject constructor(
 	private val groupRepository: GroupRepository,
 	private val userPreferenceDataStore: UserPreferenceDataStore,
-) : BaseViewModel<GroupCreationIntent, GroupCreationState, GroupCreationSideEffect>(
+) : GroupBaseViewModel<GroupCreationIntent, GroupCreationState, GroupCreationSideEffect>(
 	GroupCreationState(),
 ) {
 	private val userId: ConcurrentHashMap<String, String> = ConcurrentHashMap()
 
-	override fun onIntent(intent: GroupCreationIntent) {
-		when (intent) {
-			is GroupCreationIntent.Initialize -> {
-				initializeCreatingGroup()
-			}
+	override suspend fun reducer(intent: SharedFlow<GroupCreationIntent>) {
+		intent.collectLatest { uiIntent ->
+			when (uiIntent) {
+				GroupCreationIntent.Initialize -> {
+					initializeCreatingGroup()
+				}
 
-			is GroupCreationIntent.OnBackClick -> {
-				postSideEffect(GroupCreationSideEffect.NavigateToGroupScreen)
-			}
+				GroupCreationIntent.OnBackClick -> {
+					sendEffect { GroupCreationSideEffect.NavigateToGroupScreen }
+				}
 
-			is GroupCreationIntent.OnGroupCreationClick -> {
-				checkGroupEdit(intent.title, intent.content, intent.imageUrl)
-			}
+				is GroupCreationIntent.OnGroupCreationClick -> {
+					checkGroupEdit(uiIntent.title, uiIntent.content, uiIntent.imageUrl)
+				}
 
-			is GroupCreationIntent.OnPhotoPickerClick -> {
-				intent { copy(isSelectingGroupImage = true) }
-			}
+				is GroupCreationIntent.OnPhotoPickerClick -> {
+					sendState { copy(isSelectingGroupImage = true) }
+				}
 
-			is GroupCreationIntent.OnGroupImageSelect -> {
-				imageApply(intent.imageUrl)
-			}
+				is GroupCreationIntent.OnGroupImageSelect -> {
+					imageApply(uiIntent.imageUrl)
+				}
 
-			is GroupCreationIntent.OnBackToGroupCreation -> {
-				intent { copy(isSelectingGroupImage = false) }
+				is GroupCreationIntent.OnBackToGroupCreation -> {
+					sendState { copy(isSelectingGroupImage = false) }
+				}
 			}
 		}
 	}
@@ -59,7 +63,7 @@ class GroupCreationViewModel @Inject constructor(
 	private fun initializeCreatingGroup() {
 		viewModelScope.launch {
 			userId["userId"] = userPreferenceDataStore.getUserId().first() ?: ""
-			intent {
+			sendState {
 				copy(
 					isInitializing = true,
 					group = group.copy(
@@ -75,7 +79,7 @@ class GroupCreationViewModel @Inject constructor(
 
 	private fun imageApply(imageUrl: String) {
 		viewModelScope.launch {
-			intent {
+			sendState {
 				copy(
 					isSelectingGroupImage = false,
 					group = group.copy(imageUrl = imageUrl),
@@ -88,19 +92,19 @@ class GroupCreationViewModel @Inject constructor(
 		viewModelScope.launch {
 			try {
 				if (title.length !in 2..24) {
-					postSideEffect(
-						GroupCreationSideEffect.ShowToast(R.string.message_error_title_length),
-					)
+					sendEffect {
+						GroupCreationSideEffect.ShowToast(R.string.message_error_title_length)
+					}
 				} else if (content.isEmpty()) {
-					postSideEffect(
-						GroupCreationSideEffect.ShowToast(R.string.message_error_content_empty),
-					)
+					sendEffect {
+						GroupCreationSideEffect.ShowToast(R.string.message_error_content_empty)
+					}
 				} else if (imageUrl.isBlank()) {
-					postSideEffect(
-						GroupCreationSideEffect.ShowToast(R.string.message_error_image_url_blank),
-					)
+					sendEffect {
+						GroupCreationSideEffect.ShowToast(R.string.message_error_image_url_blank)
+					}
 				} else {
-					intent {
+					sendState {
 						copy(
 							group = group.copy(
 								name = title,
@@ -111,20 +115,20 @@ class GroupCreationViewModel @Inject constructor(
 					}
 					Timber.e("Group: ${currentState.group}")
 					groupRepository.createGroup(currentState.group.toGroupModel())
-					postSideEffect(
+					sendEffect {
 						GroupCreationSideEffect.ShowToast(
 							R.string.message_success_creation_group,
-						),
-					)
+						)
+					}
 					delay(100)
-					postSideEffect(GroupCreationSideEffect.NavigateToGroupScreen)
+					sendEffect { GroupCreationSideEffect.NavigateToGroupScreen }
 				}
 			} catch (e: Exception) {
-				postSideEffect(
-					GroupCreationSideEffect.ShowToast(R.string.message_error_creation_group),
-				)
+				sendEffect {
+					GroupCreationSideEffect.ShowToast(R.string.message_error_creation_group)
+				}
 				delay(100)
-				postSideEffect(GroupCreationSideEffect.Idle)
+				sendEffect { GroupCreationSideEffect.Idle }
 			}
 		}
 	}

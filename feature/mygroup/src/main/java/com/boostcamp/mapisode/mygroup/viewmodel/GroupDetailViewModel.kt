@@ -12,10 +12,12 @@ import com.boostcamp.mapisode.mygroup.model.toGroupUiEpisodeModel
 import com.boostcamp.mapisode.mygroup.model.toGroupUiModel
 import com.boostcamp.mapisode.mygroup.sideeffect.GroupDetailSideEffect
 import com.boostcamp.mapisode.mygroup.state.GroupDetailState
-import com.boostcamp.mapisode.ui.base.BaseViewModel
+import com.boostcamp.mapisode.ui.base.UiIntent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -25,14 +27,14 @@ class GroupDetailViewModel @Inject constructor(
 	private val groupRepository: GroupRepository,
 	private val episodeRepository: EpisodeRepository,
 	private val userPreferenceDataStore: UserPreferenceDataStore,
-) : BaseViewModel<GroupDetailIntent, GroupDetailState, GroupDetailSideEffect>(GroupDetailState()) {
+) : GroupBaseViewModel<GroupDetailIntent, GroupDetailState, GroupDetailSideEffect>(GroupDetailState()) {
 	private val groupId = mutableStateOf("")
 
-	override fun onIntent(intent: GroupDetailIntent) {
-		viewModelScope.launch {
-			when (intent) {
+	override suspend fun reducer(intent: SharedFlow<GroupDetailIntent>) {
+		intent.collectLatest { uiIntent ->
+			when (uiIntent) {
 				is GroupDetailIntent.InitializeGroupDetail -> {
-					getGroupDetail(intent.groupId)
+					getGroupDetail(uiIntent.groupId)
 				}
 
 				is GroupDetailIntent.TryGetGroup -> {
@@ -44,17 +46,17 @@ class GroupDetailViewModel @Inject constructor(
 				}
 
 				is GroupDetailIntent.OnEditClick -> {
-					postSideEffect(GroupDetailSideEffect.NavigateToGroupEditScreen(groupId.value))
+					sendEffect { GroupDetailSideEffect.NavigateToGroupEditScreen(groupId.value) }
 					delay(100)
-					intent { copy(isGroupLoading = true) }
+					sendState { copy(isGroupLoading = true) }
 				}
 
 				is GroupDetailIntent.OnBackClick -> {
-					postSideEffect(GroupDetailSideEffect.NavigateToGroupScreen)
+					sendEffect { GroupDetailSideEffect.NavigateToGroupScreen }
 				}
 
 				is GroupDetailIntent.OnEpisodeClick -> {
-					postSideEffect(GroupDetailSideEffect.NavigateToEpisode(intent.episodeId))
+					sendEffect { GroupDetailSideEffect.NavigateToEpisode(uiIntent.episodeId) }
 				}
 
 				is GroupDetailIntent.OnIssueCodeClick -> {
@@ -62,17 +64,17 @@ class GroupDetailViewModel @Inject constructor(
 				}
 
 				is GroupDetailIntent.OnGroupOutClick -> {
-					postSideEffect(GroupDetailSideEffect.WarnGroupOut)
+					sendEffect { GroupDetailSideEffect.WarnGroupOut }
 				}
 
 				is GroupDetailIntent.OnGroupOutConfirm -> {
-					postSideEffect(GroupDetailSideEffect.RemoveDialog)
+					sendEffect { GroupDetailSideEffect.RemoveDialog }
 					delay(100)
 					leaveGroup()
 				}
 
 				is GroupDetailIntent.OnGroupOutCancel -> {
-					postSideEffect(GroupDetailSideEffect.RemoveDialog)
+					sendEffect { GroupDetailSideEffect.RemoveDialog }
 				}
 
 				is GroupDetailIntent.TryGetGroupEpisodes -> {
@@ -84,7 +86,7 @@ class GroupDetailViewModel @Inject constructor(
 
 	private fun getGroupDetail(groupId: String) {
 		this.groupId.value = groupId
-		intent {
+		sendState {
 			copy(
 				isGroupIdCaching = false,
 				isGroupLoading = true,
@@ -96,21 +98,21 @@ class GroupDetailViewModel @Inject constructor(
 		viewModelScope.launch {
 			try {
 				val group = groupRepository.getGroupByGroupId(groupId.value)
-				intent {
+				sendState {
 					copy(
 						isGroupLoading = false,
 						group = group.toGroupUiModel(),
 					)
 				}
 				if (group.adminUser == userPreferenceDataStore.getUserId().first()) {
-					intent {
+					sendState {
 						copy(
 							isGroupOwner = true,
 						)
 					}
 				}
 			} catch (e: Exception) {
-				postSideEffect(GroupDetailSideEffect.ShowToast(R.string.message_group_not_found))
+				sendEffect { GroupDetailSideEffect.ShowToast(R.string.message_group_not_found) }
 			}
 		}
 	}
@@ -119,9 +121,9 @@ class GroupDetailViewModel @Inject constructor(
 		viewModelScope.launch {
 			try {
 				val code = groupRepository.issueInvitationCode(groupId.value)
-				postSideEffect(GroupDetailSideEffect.IssueInvitationCode(code))
+				sendEffect { GroupDetailSideEffect.IssueInvitationCode(code) }
 			} catch (e: Exception) {
-				postSideEffect(GroupDetailSideEffect.ShowToast(R.string.message_issue_code_fail))
+				sendEffect { GroupDetailSideEffect.ShowToast(R.string.message_issue_code_fail) }
 			}
 		}
 	}
@@ -154,7 +156,7 @@ class GroupDetailViewModel @Inject constructor(
 				)
 			}
 
-			intent {
+			sendState {
 				copy(
 					membersInfo = memberInfo.toImmutableList(),
 				)
@@ -168,11 +170,11 @@ class GroupDetailViewModel @Inject constructor(
 			val groupId = groupId.value
 			try {
 				groupRepository.leaveGroup(userId, groupId)
-				postSideEffect(GroupDetailSideEffect.ShowToast(R.string.message_group_out_success))
+				sendEffect { GroupDetailSideEffect.ShowToast(R.string.message_group_out_success) }
 				delay(100)
-				postSideEffect(GroupDetailSideEffect.NavigateToGroupScreen)
+				sendEffect { GroupDetailSideEffect.NavigateToGroupScreen }
 			} catch (e: Exception) {
-				postSideEffect(GroupDetailSideEffect.ShowToast(R.string.message_group_out_fail))
+				sendEffect { GroupDetailSideEffect.ShowToast(R.string.message_group_out_fail) }
 			}
 		}
 	}
@@ -181,7 +183,7 @@ class GroupDetailViewModel @Inject constructor(
 		viewModelScope.launch {
 			try {
 				val episodes = episodeRepository.getEpisodesByGroup(groupId.value)
-				intent {
+				sendState {
 					copy(
 						episodes = episodes.map {
 							val name = currentState.membersInfo.firstOrNull { member ->
@@ -192,7 +194,7 @@ class GroupDetailViewModel @Inject constructor(
 					)
 				}
 			} catch (e: Exception) {
-				postSideEffect(GroupDetailSideEffect.ShowToast(R.string.message_group_not_found))
+				sendEffect { GroupDetailSideEffect.ShowToast(R.string.message_group_not_found) }
 			}
 		}
 	}

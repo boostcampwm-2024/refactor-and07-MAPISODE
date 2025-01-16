@@ -92,9 +92,9 @@ fun GroupDetailScreen(
 	viewModel: GroupDetailViewModel = hiltViewModel(),
 ) {
 	val context = LocalContext.current
-	val uiState = viewModel.uiState.collectAsStateWithLifecycle()
+	val uiState = viewModel.state.collectAsStateWithLifecycle()
 	val effect = rememberFlowWithLifecycle(
-		flow = viewModel.sideEffect,
+		flow = viewModel.effect,
 		initialValue = GroupDetailSideEffect.Idle,
 	).value
 
@@ -104,13 +104,13 @@ fun GroupDetailScreen(
 		MapisodeDialog(
 			onResultRequest = { isPositive ->
 				if (isPositive) {
-					viewModel.onIntent(GroupDetailIntent.OnGroupOutConfirm)
+					viewModel.sendIntent(GroupDetailIntent.OnGroupOutConfirm)
 				} else {
-					viewModel.onIntent(GroupDetailIntent.OnGroupOutCancel)
+					viewModel.sendIntent(GroupDetailIntent.OnGroupOutCancel)
 				}
 			},
 			onDismissRequest = {
-				viewModel.onIntent(GroupDetailIntent.OnGroupOutCancel)
+				viewModel.sendIntent(GroupDetailIntent.OnGroupOutCancel)
 			},
 			titleText = stringResource(S.string.dialog_group_out_title),
 			contentText = stringResource(S.string.dialog_group_out_message),
@@ -122,17 +122,17 @@ fun GroupDetailScreen(
 	LaunchedEffect(uiState.value) {
 		with(uiState.value) {
 			if (isGroupIdCaching) {
-				viewModel.onIntent(GroupDetailIntent.InitializeGroupDetail(detail.groupId))
+				viewModel.sendIntent(GroupDetailIntent.InitializeGroupDetail(detail.groupId))
 			}
 			if (isGroupLoading) {
-				viewModel.onIntent(GroupDetailIntent.TryGetGroup(detail.groupId))
+				viewModel.sendIntent(GroupDetailIntent.TryGetGroup(detail.groupId))
 			}
 			if (!isGroupIdCaching && !isGroupLoading && membersInfo.isEmpty()) {
-				viewModel.onIntent(GroupDetailIntent.TryGetUserInfo)
+				viewModel.sendIntent(GroupDetailIntent.TryGetUserInfo)
 			}
 			// 최초 진입 시 보이지 않는 탭, 후순위 로딩
 			if (episodes.isEmpty() && membersInfo.isNotEmpty()) {
-				viewModel.onIntent(GroupDetailIntent.TryGetGroupEpisodes)
+				viewModel.sendIntent(GroupDetailIntent.TryGetGroupEpisodes)
 			}
 		}
 	}
@@ -175,19 +175,19 @@ fun GroupDetailScreen(
 	GroupDetailContent(
 		uiState = uiState.value,
 		onBackClick = {
-			viewModel.onIntent(GroupDetailIntent.OnBackClick)
+			viewModel.sendIntent(GroupDetailIntent.OnBackClick)
 		},
 		onEditClick = {
-			viewModel.onIntent(GroupDetailIntent.OnEditClick)
+			viewModel.sendIntent(GroupDetailIntent.OnEditClick)
 		},
 		onIssueCodeClick = {
-			viewModel.onIntent(GroupDetailIntent.OnIssueCodeClick)
+			viewModel.sendIntent(GroupDetailIntent.OnIssueCodeClick)
 		},
 		onGroupOutClick = {
-			viewModel.onIntent(GroupDetailIntent.OnGroupOutClick)
+			viewModel.sendIntent(GroupDetailIntent.OnGroupOutClick)
 		},
 		onEpisodeClick = { episodeId ->
-			viewModel.onIntent(GroupDetailIntent.OnEpisodeClick(episodeId))
+			viewModel.sendIntent(GroupDetailIntent.OnEpisodeClick(episodeId))
 		},
 	)
 }

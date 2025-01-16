@@ -8,10 +8,12 @@ import com.boostcamp.mapisode.mygroup.intent.GroupJoinIntent
 import com.boostcamp.mapisode.mygroup.model.toGroupCreationModel
 import com.boostcamp.mapisode.mygroup.sideeffect.GroupJoinSideEffect
 import com.boostcamp.mapisode.mygroup.state.GroupJoinState
-import com.boostcamp.mapisode.ui.base.BaseViewModel
+import com.boostcamp.mapisode.ui.base.UiIntent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -19,7 +21,7 @@ import javax.inject.Inject
 class GroupJoinViewModel @Inject constructor(
 	private val groupRepository: GroupRepository,
 	private val userPreferenceDataStore: UserPreferenceDataStore,
-) : BaseViewModel<GroupJoinIntent, GroupJoinState, GroupJoinSideEffect>(GroupJoinState()) {
+) : GroupBaseViewModel<GroupJoinIntent, GroupJoinState, GroupJoinSideEffect>(GroupJoinState()) {
 	private val myId: MutableStateFlow<String> = MutableStateFlow("")
 
 	init {
@@ -34,31 +36,36 @@ class GroupJoinViewModel @Inject constructor(
 		}
 	}
 
-	override fun onIntent(intent: GroupJoinIntent) {
-		when (intent) {
-			is GroupJoinIntent.TryGetGroup -> {
-				tryGetGroupByGroupId(intent.inviteCode)
-			}
+	override suspend fun reducer(intent: SharedFlow<GroupJoinIntent>) {
+		viewModelScope.launch {
+			intent.collectLatest { intent ->
 
-			is GroupJoinIntent.OnJoinClick -> {
-				joinGroup()
-			}
+				when (intent) {
+					is GroupJoinIntent.TryGetGroup -> {
+						tryGetGroupByGroupId(intent.inviteCode)
+					}
 
-			is GroupJoinIntent.OnBackClick -> {
-				postSideEffect(GroupJoinSideEffect.NavigateToGroupScreen)
+					is GroupJoinIntent.OnJoinClick -> {
+						joinGroup()
+					}
+
+					is GroupJoinIntent.OnBackClick -> {
+						sendEffect { GroupJoinSideEffect.NavigateToGroupScreen }
+					}
+				}
 			}
 		}
 	}
 
 	private fun tryGetGroupByGroupId(inviteCodes: String) {
 		viewModelScope.launch {
-			intent { copy(isGroupLoading = true) }
+			sendState { copy(isGroupLoading = true) }
 			try {
 				val group = groupRepository.getGroupByInviteCodes(inviteCodes)
-				intent { copy(isGroupExist = true, group = group.toGroupCreationModel()) }
+				sendState { copy(isGroupExist = true, group = group.toGroupCreationModel()) }
 			} catch (e: Exception) {
-				intent { copy(isGroupExist = false) }
-				postSideEffect(GroupJoinSideEffect.ShowToast(R.string.group_join_not_exist))
+				sendState { copy(isGroupExist = false) }
+				sendEffect { GroupJoinSideEffect.ShowToast(R.string.group_join_not_exist) }
 			}
 		}
 	}
@@ -67,20 +74,20 @@ class GroupJoinViewModel @Inject constructor(
 		viewModelScope.launch {
 			val userId = myId.value
 			val group = currentState.group ?: return@launch
-			intent { copy(isGroupLoading = true) }
+			sendState { copy(isGroupLoading = true) }
 			try {
 				groupRepository.joinGroup(userId, group.id)
-				intent { copy(isJoinedSuccess = true) }
-				postSideEffect(GroupJoinSideEffect.ShowToast(R.string.group_join_success))
+				sendState { copy(isJoinedSuccess = true) }
+				sendEffect { GroupJoinSideEffect.ShowToast(R.string.group_join_success) }
 			} catch (e: NullPointerException) {
-				intent { copy(isGroupLoading = false, isJoinedSuccess = false, group = null) }
-				postSideEffect(GroupJoinSideEffect.ShowToast(R.string.message_already_joined))
+				sendState { copy(isGroupLoading = false, isJoinedSuccess = false, group = null) }
+				sendEffect { GroupJoinSideEffect.ShowToast(R.string.message_already_joined) }
 			} catch (e: Exception) {
-				intent { copy(isGroupLoading = false, isJoinedSuccess = false, group = null) }
-				postSideEffect(GroupJoinSideEffect.ShowToast(R.string.group_join_failure))
+				sendState { copy(isGroupLoading = false, isJoinedSuccess = false, group = null) }
+				sendEffect { GroupJoinSideEffect.ShowToast(R.string.group_join_failure) }
 			}
 			delay(100)
-			postSideEffect(GroupJoinSideEffect.NavigateToGroupScreen)
+			sendEffect { GroupJoinSideEffect.NavigateToGroupScreen }
 		}
 	}
 }
