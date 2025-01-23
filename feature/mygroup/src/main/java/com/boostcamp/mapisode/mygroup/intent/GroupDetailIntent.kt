@@ -6,7 +6,6 @@ import com.boostcamp.mapisode.ui.base.UiIntent
 @Immutable
 sealed class GroupDetailIntent : UiIntent {
 	data class InitializeGroupDetail(val groupId: String) : GroupDetailIntent()
-	data class TryGetGroup(val groupId: String) : GroupDetailIntent()
 	data object TryGetUserInfo : GroupDetailIntent()
 	data object TryGetGroupEpisodes : GroupDetailIntent()
 	data object OnEditClick : GroupDetailIntent()

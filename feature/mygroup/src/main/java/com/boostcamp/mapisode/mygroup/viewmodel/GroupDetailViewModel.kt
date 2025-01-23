@@ -1,6 +1,5 @@
 package com.boostcamp.mapisode.mygroup.viewmodel
 
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.viewModelScope
 import com.boostcamp.mapisode.datastore.UserPreferenceDataStore
 import com.boostcamp.mapisode.episode.EpisodeRepository
@@ -14,15 +13,13 @@ import com.boostcamp.mapisode.mygroup.sideeffect.GroupDetailSideEffect
 import com.boostcamp.mapisode.mygroup.state.GroupDetailState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.toImmutableList
-import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -32,23 +29,13 @@ class GroupDetailViewModel @Inject constructor(
 	private val episodeRepository: EpisodeRepository,
 	private val userPreferenceDataStore: UserPreferenceDataStore,
 ) : GroupBaseViewModel<GroupDetailIntent, GroupDetailState, GroupDetailSideEffect>(GroupDetailState()) {
-	private val groupId = mutableStateOf("")
 
-	@OptIn(FlowPreview::class)
 	override suspend fun reducer(intent: SharedFlow<GroupDetailIntent>) {
-		intent
-			.debounce(100L)
-			.flatMapLatest { value ->
-				flowOf(value).onEach { delay(300) }
-			}
-			.collectLatest { uiIntent ->
+		intent.retainFirstIfNavigating()
+			.collect { uiIntent ->
 				when (uiIntent) {
 					is GroupDetailIntent.InitializeGroupDetail -> {
-						getGroupDetail(uiIntent.groupId)
-					}
-
-					is GroupDetailIntent.TryGetGroup -> {
-						tryGetGroup()
+						tryGetGroup(uiIntent.groupId)
 					}
 
 					is GroupDetailIntent.TryGetUserInfo -> {
@@ -56,9 +43,7 @@ class GroupDetailViewModel @Inject constructor(
 					}
 
 					is GroupDetailIntent.OnEditClick -> {
-						sendEffect { GroupDetailSideEffect.NavigateToGroupEditScreen(groupId.value) }
-						delay(100)
-						sendState { copy(isGroupLoading = true) }
+						navigateToGroupEditScreen(currentState.group.id)
 					}
 
 					is GroupDetailIntent.OnBackClick -> {
@@ -66,7 +51,7 @@ class GroupDetailViewModel @Inject constructor(
 					}
 
 					is GroupDetailIntent.OnEpisodeClick -> {
-						sendEffect { GroupDetailSideEffect.NavigateToEpisode(uiIntent.episodeId) }
+						navigateToEpisode(uiIntent.episodeId)
 					}
 
 					is GroupDetailIntent.OnIssueCodeClick -> {
@@ -94,30 +79,32 @@ class GroupDetailViewModel @Inject constructor(
 			}
 	}
 
-	private fun getGroupDetail(groupId: String) {
-		this.groupId.value = groupId
-		sendState {
-			copy(
-				isGroupIdCaching = false,
-				isGroupLoading = true,
-			)
-		}
+	private fun navigateToGroupEditScreen(groupId: String) {
+		sendEffect { GroupDetailSideEffect.NavigateToGroupEditScreen(groupId) }
 	}
 
-	private fun tryGetGroup() {
+	private fun navigateToEpisode(episodeId: String) {
+		sendEffect { GroupDetailSideEffect.NavigateToEpisode(episodeId) }
+	}
+
+	private fun tryGetGroup(groupId: String) {
 		viewModelScope.launch {
 			try {
-				val group = groupRepository.getGroupByGroupId(groupId.value)
-				sendState {
-					copy(
-						isGroupLoading = false,
-						group = group.toGroupUiModel(),
-					)
-				}
+				val group = groupRepository.getGroupByGroupId(groupId)
+
 				if (group.adminUser == userPreferenceDataStore.getUserId().first()) {
 					sendState {
 						copy(
 							isGroupOwner = true,
+							group = group.toGroupUiModel(),
+							isGroupLoaded = true,
+						)
+					}
+				} else {
+					sendState {
+						copy(
+							group = group.toGroupUiModel(),
+							isGroupLoaded = true,
 						)
 					}
 				}
@@ -130,7 +117,7 @@ class GroupDetailViewModel @Inject constructor(
 	private fun issueInvitationCode() {
 		viewModelScope.launch {
 			try {
-				val code = groupRepository.issueInvitationCode(groupId.value)
+				val code = groupRepository.issueInvitationCode(currentState.group.id)
 				sendEffect { GroupDetailSideEffect.IssueInvitationCode(code) }
 			} catch (e: Exception) {
 				sendEffect { GroupDetailSideEffect.ShowToast(R.string.message_issue_code_fail) }
@@ -139,7 +126,7 @@ class GroupDetailViewModel @Inject constructor(
 	}
 
 	private fun setGroupMembersInfo() {
-		val group = currentState.group ?: throw Exception()
+		val group = currentState.group
 		val members = group.members
 
 		viewModelScope.launch {
@@ -147,7 +134,7 @@ class GroupDetailViewModel @Inject constructor(
 			members.forEach { member ->
 				val userModel = groupRepository.getUserInfoByUserId(member)
 				val userEpisodeModel = groupRepository.getEpisodesByGroupIdAndUserId(
-					groupId = groupId.value,
+					groupId = currentState.group.id,
 					userId = member,
 				)
 				val latestCreatedAt = userEpisodeModel.maxByOrNull { it.createdAt.time }?.createdAt
@@ -177,7 +164,7 @@ class GroupDetailViewModel @Inject constructor(
 	private fun leaveGroup() {
 		viewModelScope.launch {
 			val userId = userPreferenceDataStore.getUserId().first() ?: throw Exception()
-			val groupId = groupId.value
+			val groupId = currentState.group.id
 			try {
 				groupRepository.leaveGroup(userId, groupId)
 				sendEffect { GroupDetailSideEffect.ShowToast(R.string.message_group_out_success) }
@@ -192,7 +179,7 @@ class GroupDetailViewModel @Inject constructor(
 	private fun getGroupEpisodes() {
 		viewModelScope.launch {
 			try {
-				val episodes = episodeRepository.getEpisodesByGroup(groupId.value)
+				val episodes = episodeRepository.getEpisodesByGroup(currentState.group.id)
 				sendState {
 					copy(
 						episodes = episodes.map {
@@ -205,6 +192,22 @@ class GroupDetailViewModel @Inject constructor(
 				}
 			} catch (e: Exception) {
 				sendEffect { GroupDetailSideEffect.ShowToast(R.string.message_group_not_found) }
+			}
+		}
+	}
+}
+
+fun Flow<GroupDetailIntent>.retainFirstIfNavigating() = channelFlow {
+	var isFirst = true
+	collectLatest { value ->
+		if (isFirst) {
+			launch(Dispatchers.IO) {
+				isFirst = false
+				send(value)
+				if (value is GroupDetailIntent.OnEditClick || value is GroupDetailIntent.OnEpisodeClick) {
+					delay(300)
+				}
+				isFirst = true
 			}
 		}
 	}
