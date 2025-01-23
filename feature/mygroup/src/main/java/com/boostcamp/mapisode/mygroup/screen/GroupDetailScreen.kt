@@ -119,15 +119,13 @@ fun GroupDetailScreen(
 		)
 	}
 
+	LaunchedEffect(Unit) {
+		viewModel.sendIntent(GroupDetailIntent.InitializeGroupDetail(detail.groupId))
+	}
+
 	LaunchedEffect(uiState.value) {
 		with(uiState.value) {
-			if (isGroupIdCaching) {
-				viewModel.sendIntent(GroupDetailIntent.InitializeGroupDetail(detail.groupId))
-			}
-			if (isGroupLoading) {
-				viewModel.sendIntent(GroupDetailIntent.TryGetGroup(detail.groupId))
-			}
-			if (!isGroupIdCaching && !isGroupLoading && membersInfo.isEmpty()) {
+			if (isGroupLoaded) {
 				viewModel.sendIntent(GroupDetailIntent.TryGetUserInfo)
 			}
 			// 최초 진입 시 보이지 않는 탭, 후순위 로딩
@@ -209,32 +207,34 @@ fun GroupDetailContent(
 		isStatusBarPaddingExist = true,
 		isNavigationBarPaddingExist = true,
 		topBar = {
-			TopAppBar(
-				title = uiState.group?.name ?: "",
-				navigationIcon = {
-					MapisodeIconButton(
-						onClick = { onBackClick() },
-					) {
-						MapisodeIcon(
-							id = R.drawable.ic_arrow_back_ios,
-						)
-					}
-				},
-
-				actions = {
-					if (uiState.isGroupOwner) {
+			uiState.group.name.let {
+				TopAppBar(
+					title = it,
+					navigationIcon = {
 						MapisodeIconButton(
-							onClick = {
-								onEditClick()
-							},
+							onClick = { onBackClick() },
 						) {
 							MapisodeIcon(
-								id = R.drawable.ic_edit,
+								id = R.drawable.ic_arrow_back_ios,
 							)
 						}
-					}
-				},
-			)
+					},
+
+					actions = {
+						if (uiState.isGroupOwner) {
+							MapisodeIconButton(
+								onClick = {
+									onEditClick()
+								},
+							) {
+								MapisodeIcon(
+									id = R.drawable.ic_edit,
+								)
+							}
+						}
+					},
+				)
+			}
 		},
 	) {
 		Column(
@@ -264,14 +264,12 @@ fun GroupDetailContent(
 			HorizontalPager(state = pagerState) { page ->
 				when (page) {
 					0 -> {
-						if (uiState.group != null) {
-							GroupDetailContent(
-								group = uiState.group.toGroupModel(),
-								members = uiState.membersInfo,
-								onIssueCodeClick = onIssueCodeClick,
-								onGroupOutClick = onGroupOutClick,
-							)
-						}
+						GroupDetailContent(
+							group = uiState.group.toGroupModel(),
+							members = uiState.membersInfo,
+							onIssueCodeClick = onIssueCodeClick,
+							onGroupOutClick = onGroupOutClick,
+						)
 					}
 
 					1 -> {
