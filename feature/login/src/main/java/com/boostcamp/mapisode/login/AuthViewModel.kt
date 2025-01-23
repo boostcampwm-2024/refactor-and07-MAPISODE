@@ -10,6 +10,7 @@ import com.boostcamp.mapisode.mygroup.GroupRepository
 import com.boostcamp.mapisode.ui.base.BaseViewModel
 import com.boostcamp.mapisode.user.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import java.util.Date
@@ -21,6 +22,7 @@ class AuthViewModel @Inject constructor(
 	private val groupRepository: GroupRepository,
 	private val userDataStore: UserPreferenceDataStore,
 ) : BaseViewModel<AuthIntent, AuthState, AuthSideEffect>(AuthState()) {
+	private var startTime: Long = 0L
 
 	override fun onIntent(intent: AuthIntent) {
 		when (intent) {
@@ -130,6 +132,7 @@ class AuthViewModel @Inject constructor(
 	}
 
 	private fun handleSignUp() {
+		startTime = System.currentTimeMillis()
 		intent {
 			copy(isLoading = true)
 		}
@@ -141,8 +144,11 @@ class AuthViewModel @Inject constructor(
 				if (currentState.authData == null) throw IllegalArgumentException("로그인 정보가 없습니다.")
 
 				val localUri = currentState.profileUrl
-				val storageUrl = getStorageUrl()
-				onProfileUrlChange(storageUrl)
+				launch(Dispatchers.IO) {
+					val storageUrl = getStorageUrl()
+					onProfileUrlChange(storageUrl)
+					updateDataStoreProfileUrl(storageUrl)
+				}
 
 				val user = UserModel(
 					uid = currentState.authData?.uid
@@ -155,20 +161,28 @@ class AuthViewModel @Inject constructor(
 					groups = emptyList(),
 				)
 
-				userRepository.createUser(user)
-				createMyEpisodeGroup(
-					user.copy(
-						profileUrl = localUri,
-					),
-				)
+				launch(Dispatchers.IO) {
+					userRepository.createUser(user)
+				}
 
-				storeUserData(
-					userModel = user,
-					credentialId = currentState.authData?.idToken ?: throw IllegalArgumentException(
-						"로그인 정보가 없습니다.",
-					),
-					recentGroup = user.uid,
-				)
+				launch(Dispatchers.IO) {
+					createMyEpisodeGroup(
+						user.copy(
+							profileUrl = localUri,
+						),
+					)
+				}
+
+				launch(Dispatchers.IO) {
+					storeUserData(
+						userModel = user,
+						credentialId = currentState.authData?.idToken
+							?: throw IllegalArgumentException(
+								"로그인 정보가 없습니다.",
+							),
+						recentGroup = user.uid,
+					)
+				}
 
 				onIntent(AuthIntent.OnLoginSuccess)
 			} catch (e: Exception) {
@@ -177,16 +191,16 @@ class AuthViewModel @Inject constructor(
 		}
 	}
 
+	private suspend fun updateDataStoreProfileUrl(profileUrl: String) {
+		userDataStore.updateProfileUrl(profileUrl)
+	}
+
 	private suspend fun getStorageUrl(): String {
-		try {
-			return userRepository.uploadProfileImageToStorage(
-				imageUri = currentState.profileUrl,
-				uid = currentState.authData?.uid
-					?: throw IllegalArgumentException("UID cannot be empty"),
-			)
-		} catch (e: Exception) {
-			throw e
-		}
+		return userRepository.uploadProfileImageToStorage(
+			imageUri = currentState.profileUrl,
+			uid = currentState.authData?.uid
+				?: throw IllegalArgumentException("UID cannot be empty"),
+		)
 	}
 
 	private suspend fun getUserInfo(uid: String): UserModel = try {
@@ -195,37 +209,32 @@ class AuthViewModel @Inject constructor(
 		throw Exception("Failed to get user", e)
 	}
 
-	private fun storeUserData(
+	private suspend fun storeUserData(
 		userModel: UserModel,
 		credentialId: String,
 		recentGroup: String,
 	) {
-		viewModelScope.launch {
-			with(userDataStore) {
-				updateUserId(userModel.uid)
-				updateUsername(userModel.name)
-				updateProfileUrl(userModel.profileUrl)
-				updateIsFirstLaunch()
-				updateCredentialIdToken(credentialId)
-				updateRecentSelectedGroup(recentGroup)
-			}
+		with(userDataStore) {
+			updateUserId(userModel.uid)
+			updateUsername(userModel.name)
+			updateIsFirstLaunch()
+			updateCredentialIdToken(credentialId)
+			updateRecentSelectedGroup(recentGroup)
 		}
 	}
 
 	private suspend fun createMyEpisodeGroup(user: UserModel) {
-		viewModelScope.launch {
-			groupRepository.createGroup(
-				GroupModel(
-					id = user.uid,
-					adminUser = user.uid,
-					createdAt = Date.from(java.time.Instant.now()),
-					description = "내가 작성한 에피소드",
-					imageUrl = user.profileUrl,
-					name = "\uD83D\uDC51 나만의 에피소드",
-					members = listOf(user.uid),
-				),
-			)
-		}.join()
+		groupRepository.createGroup(
+			GroupModel(
+				id = user.uid,
+				adminUser = user.uid,
+				createdAt = Date.from(java.time.Instant.now()),
+				description = "내가 작성한 에피소드",
+				imageUrl = user.profileUrl,
+				name = "\uD83D\uDC51 나만의 에피소드",
+				members = listOf(user.uid),
+			),
+		)
 	}
 
 	private fun handleLoginSuccess() {
