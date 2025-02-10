@@ -19,11 +19,11 @@ object UseCaseModule {
 		imageCaptionRepository: ImageCaptionRepository,
 		llmRepository: LlmRepository,
 		translationRepository: TranslationRepository,
-    ): EpisodeGenerationUseCase {
+	): EpisodeGenerationUseCase {
 		return EpisodeGenerationUseCase(
-            imageCaptionRepository,
-            llmRepository,
-            translationRepository,
-        )
+			imageCaptionRepository,
+			llmRepository,
+			translationRepository,
+		)
 	}
 }

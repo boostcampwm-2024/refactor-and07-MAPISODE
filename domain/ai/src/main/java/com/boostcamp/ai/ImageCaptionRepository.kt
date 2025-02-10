@@ -1,5 +1,5 @@
 package com.boostcamp.ai
 
-interface ImageCaptionRepository{
+interface ImageCaptionRepository {
 	suspend fun generateImageCaption(imagePath: String): List<String>
 }

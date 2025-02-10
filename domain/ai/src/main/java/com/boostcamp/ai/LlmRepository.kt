@@ -1,5 +1,5 @@
 package com.boostcamp.ai
 
-interface LlmRepository{
+interface LlmRepository {
 	fun generateLlm(text: String): String
 }
