@@ -60,6 +60,9 @@ ksp = "2.0.21-1.0.25"
 ## Ktlint
 ktlint = "11.6.1"
 
+# MediaPipe
+mediapipeGenai = "0.10.14"
+
 ## Naver Map
 naverMapCompose = "1.8.0"
 naverMapLocation = "21.0.2"
@@ -80,6 +83,9 @@ junit = "4.13.2"
 androidx-junit = "1.2.1"
 espresso-core = "3.6.1"
 material = "1.12.0"
+
+# Translate
+translate = "17.0.3"
 
 [libraries]
 # Androidx Core
@@ -144,6 +150,9 @@ kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-cor
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "kotlinx-coroutines" }
 kotlinx-immutable = { group = "org.jetbrains.kotlinx", name = "kotlinx-collections-immutable", version.ref = "kotlinx-immutable" }
 
+# MediaPipe
+mediapipe-tasks-genai = { group = "com.google.mediapipe", name = "tasks-genai", version.ref = "mediapipeGenai"}
+
 # Naver Map
 naver-map-compose = { module = "io.github.fornewid:naver-map-compose", version.ref = "naverMapCompose" }
 naver-map-location = { module = "io.github.fornewid:naver-map-location", version.ref = "naverMapLocation" }
@@ -167,6 +176,9 @@ timber = { group = "com.jakewharton.timber", name = "timber", version.ref = "tim
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidx-junit" }
 espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espresso-core" }
+
+# Translate
+translate = { module = "com.google.mlkit:translate", version.ref = "translate" }
 
 # Dependencies of the included build-logic
 android-gradlePlugin = { group = "com.android.tools.build", name = "gradle", version.ref = "agp" }

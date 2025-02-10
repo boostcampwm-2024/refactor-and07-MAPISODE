@@ -12,4 +12,5 @@ dependencies {
 	implementation(projects.core.network)
 	implementation(projects.domain.episode)
 	implementation(projects.domain.mygroup)
+    implementation(projects.domain.ai)
 }
