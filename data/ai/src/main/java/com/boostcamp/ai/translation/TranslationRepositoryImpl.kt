@@ -24,7 +24,7 @@ class TranslationRepositoryImpl @Inject constructor() : TranslationRepository {
 	private var isModelReady = false
 	private val englishKoreanTranslator = Translation.getClient(options)
 
-	override fun downloadModel(){
+	override fun downloadModel() {
 		englishKoreanTranslator.downloadModelIfNeeded(conditions)
 			.addOnSuccessListener {
 				Timber.e("Model downloaded successfully")
@@ -36,7 +36,7 @@ class TranslationRepositoryImpl @Inject constructor() : TranslationRepository {
 			}
 	}
 
-	override fun deleteModel(){
+	override fun deleteModel() {
 		val koreanModel = TranslateRemoteModel.Builder(TranslateLanguage.KOREAN).build()
 		modelManager.deleteDownloadedModel(koreanModel)
 			.addOnSuccessListener {

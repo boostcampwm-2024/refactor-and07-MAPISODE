@@ -14,6 +14,6 @@ interface ComputerVisionApi {
 		@Query("api-version") apiVersion: String = "2024-02-01",
 		@Query("features") features: String = "denseCaptions",
 		@Query("language") language: String = "en",
-		@Body request: RequestBody
+		@Body request: RequestBody,
 	): ImageAnalysisResponse
 }

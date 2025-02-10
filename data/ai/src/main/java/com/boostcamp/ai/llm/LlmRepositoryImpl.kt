@@ -16,8 +16,8 @@ class LlmRepositoryImpl @Inject constructor(context: Context) : LlmRepository {
 
 	private fun inputPrompt(description: String) =
 		"""Make a story about the description below. Under 300 words.
-        $description
-    """.trimMargin()
+		$description
+		""".trimMargin()
 
 	private val llmInference: LlmInference = LlmInference.createFromOptions(context, options)
 
