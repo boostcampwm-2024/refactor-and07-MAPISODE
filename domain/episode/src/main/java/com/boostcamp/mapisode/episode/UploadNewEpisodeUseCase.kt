@@ -1,0 +1,53 @@
+package com.boostcamp.mapisode.episode
+
+import com.boostcamp.mapisode.model.EpisodeModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+import javax.inject.Inject
+
+class UploadNewEpisodeUseCase @Inject constructor(
+	private val episodeRepository: EpisodeRepository,
+	private val imageCaptionRepository: ImageCaptionRepository,
+	private val llmRepository: LlmRepository,
+	private val translationRepository: TranslationRepository,
+	private val databaseRepository: DatabaseRepository,
+) {
+	fun invoke(episodeModel: EpisodeModel) {
+		CoroutineScope(Dispatchers.IO).launch {
+			val dbJob = launch { databaseRepository.cacheEpisode(episodeModel) }
+			val aiDeferred = async { processAI(episodeModel.imageUrls) }
+			val storageDeferred = async {
+				episodeRepository.uploadImagesToStorage(
+					episodeModel.group,
+					episodeModel.imageUrls,
+				)
+			}
+			val aiRe = aiDeferred.await()
+			dbJob.join()
+			val updatedEpisode = episodeModel.copy(
+				title = aiRe[0],
+				tags = aiRe[1].split(","),
+				content = aiRe[2],
+			)
+			launch { databaseRepository.cacheEpisode(updatedEpisode) }
+			val storageUrls = storageDeferred.await()
+			launch { episodeRepository.createEpisode(updatedEpisode, storageUrls) }
+		}
+	}
+
+	private suspend fun processAI(imageUrls: List<String>): List<String> {
+		val aiResult = coroutineScope {
+			imageUrls.map { imageUrl ->
+				async(Dispatchers.IO) {
+					imageCaptionRepository.generateImageCaption(imageUrl)
+				}
+			}.awaitAll()
+		}
+		val llm = llmRepository.generateLlm(aiResult.joinToString("\n"))
+		return translationRepository.translate(llm)
+	}
+}

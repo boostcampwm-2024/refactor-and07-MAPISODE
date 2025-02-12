@@ -22,7 +22,7 @@ import kotlinx.coroutines.tasks.await
 import timber.log.Timber
 import javax.inject.Inject
 
-class EpisodeRepositoryImpl @Inject constructor(
+class EpisodeRepositoryImpl (
 	private val database: FirebaseFirestore,
 	private val storage: FirebaseStorage,
 ) : EpisodeRepository {
@@ -108,9 +108,11 @@ class EpisodeRepositoryImpl @Inject constructor(
 			.toObject(EpisodeFirestoreModel::class.java)
 			?.toDomainModel(episodeId)
 
-	override suspend fun createEpisode(episodeModel: EpisodeModel): String {
+	override suspend fun createEpisode(
+		episodeModel: EpisodeModel,
+		uploadedImageUrls: List<String>,
+	): String {
 		val newEpisodeId = UuidGenerator.generate()
-		val uploadedImageUrls = uploadImagesToStorage(newEpisodeId, episodeModel.imageUrls)
 		return try {
 			episodeCollection
 				.document(newEpisodeId)
@@ -122,7 +124,7 @@ class EpisodeRepositoryImpl @Inject constructor(
 		}
 	}
 
-	private suspend fun uploadImagesToStorage(
+	override suspend fun uploadImagesToStorage(
 		newEpisodeId: String,
 		imageUris: List<String>,
 	): List<String> {

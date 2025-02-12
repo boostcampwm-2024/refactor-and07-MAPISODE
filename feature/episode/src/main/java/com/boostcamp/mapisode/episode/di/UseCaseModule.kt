@@ -1,9 +1,11 @@
 package com.boostcamp.mapisode.episode.di
 
-import com.boostcamp.ai.EpisodeGenerationUseCase
-import com.boostcamp.ai.ImageCaptionRepository
-import com.boostcamp.ai.LlmRepository
-import com.boostcamp.ai.TranslationRepository
+import com.boostcamp.mapisode.episode.DatabaseRepository
+import com.boostcamp.mapisode.episode.EpisodeRepository
+import com.boostcamp.mapisode.episode.ImageCaptionRepository
+import com.boostcamp.mapisode.episode.LlmRepository
+import com.boostcamp.mapisode.episode.TranslationRepository
+import com.boostcamp.mapisode.episode.UploadNewEpisodeUseCase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -15,15 +17,19 @@ import javax.inject.Singleton
 object UseCaseModule {
 	@Provides
 	@Singleton
-	fun provideAiUseCase(
+	fun provideUploadUseCase(
+		episodeRepository: EpisodeRepository,
 		imageCaptionRepository: ImageCaptionRepository,
 		llmRepository: LlmRepository,
 		translationRepository: TranslationRepository,
-	): EpisodeGenerationUseCase {
-		return EpisodeGenerationUseCase(
+		databaseRepository: DatabaseRepository,
+	): UploadNewEpisodeUseCase {
+		return UploadNewEpisodeUseCase(
+			episodeRepository,
 			imageCaptionRepository,
 			llmRepository,
 			translationRepository,
+			databaseRepository,
 		)
 	}
 }

@@ -19,9 +19,10 @@ interface EpisodeRepository {
 
 	suspend fun getEpisodeById(episodeId: String): EpisodeModel?
 
-	suspend fun createEpisode(episodeModel: EpisodeModel): String
+	suspend fun createEpisode(episodeModel: EpisodeModel, uploadedImageUrls: List<String>): String
 
 	suspend fun getMostRecentEpisodeByGroup(groupId: String): EpisodeModel?
 
 	suspend fun updateEpisode(episodeModel: EpisodeModel)
+	suspend fun uploadImagesToStorage(newEpisodeId: String, imageUris: List<String>): List<String>
 }
