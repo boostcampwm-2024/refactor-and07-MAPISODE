@@ -7,7 +7,7 @@ import com.boostcamp.mapisode.episode.DatabaseRepository
 import com.boostcamp.mapisode.model.EpisodeModel
 import kotlinx.coroutines.flow.flow
 
-class DatabaseRepositoryImpl (private val roomDAO: EpisodeDAO) :
+class DatabaseRepositoryImpl(private val roomDAO: EpisodeDAO) :
 	DatabaseRepository {
 	override suspend fun cacheEpisode(episode: EpisodeModel) {
 		val en = episode.toEpisodeRoomEntity()

@@ -20,9 +20,8 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.tasks.await
 import timber.log.Timber
-import javax.inject.Inject
 
-class EpisodeRepositoryImpl (
+class EpisodeRepositoryImpl(
 	private val database: FirebaseFirestore,
 	private val storage: FirebaseStorage,
 ) : EpisodeRepository {

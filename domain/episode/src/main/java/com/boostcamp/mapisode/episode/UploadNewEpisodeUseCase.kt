@@ -3,6 +3,7 @@ package com.boostcamp.mapisode.episode
 import com.boostcamp.mapisode.model.EpisodeModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -19,7 +20,8 @@ class UploadNewEpisodeUseCase @Inject constructor(
 	fun invoke(episodeModel: EpisodeModel) {
 		CoroutineScope(Dispatchers.IO).launch {
 			val dbJob = launch { databaseRepository.cacheEpisode(episodeModel) }
-			val aiDeferred = async { processAI(episodeModel.imageUrls) }
+			val translationJobModelDownloadJob = launch { translationRepository.downloadModel() }
+			val aiDeferred = async { processAI(episodeModel.imageUrls, translationJobModelDownloadJob) }
 			val storageDeferred = async {
 				episodeRepository.uploadImagesToStorage(
 					episodeModel.group,
@@ -39,7 +41,7 @@ class UploadNewEpisodeUseCase @Inject constructor(
 		}
 	}
 
-	private suspend fun processAI(imageUrls: List<String>): List<String> {
+	private suspend fun processAI(imageUrls: List<String>, translationJobModelDownloadJob: Job): List<String> {
 		val aiResult = coroutineScope {
 			imageUrls.map { imageUrl ->
 				async(Dispatchers.IO) {
@@ -48,6 +50,7 @@ class UploadNewEpisodeUseCase @Inject constructor(
 			}.awaitAll()
 		}
 		val llm = llmRepository.generateLlm(aiResult.joinToString("\n"))
+		translationJobModelDownloadJob.join()
 		return translationRepository.translate(llm)
 	}
 }

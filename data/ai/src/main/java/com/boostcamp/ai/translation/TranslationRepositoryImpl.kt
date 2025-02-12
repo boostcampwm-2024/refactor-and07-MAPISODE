@@ -8,9 +8,8 @@ import com.google.mlkit.nl.translate.TranslateRemoteModel
 import com.google.mlkit.nl.translate.Translation
 import com.google.mlkit.nl.translate.TranslatorOptions
 import timber.log.Timber
-import javax.inject.Inject
 
-class TranslationRepositoryImpl: TranslationRepository {
+class TranslationRepositoryImpl : TranslationRepository {
 
 	private val options = TranslatorOptions.Builder()
 		.setSourceLanguage(TranslateLanguage.ENGLISH)
