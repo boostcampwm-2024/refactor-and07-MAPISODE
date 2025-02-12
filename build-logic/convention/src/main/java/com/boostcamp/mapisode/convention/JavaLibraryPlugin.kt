@@ -15,18 +15,20 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinProjectExtension
 class JavaLibraryPlugin : Plugin<Project> {
 	override fun apply(target: Project) {
 		with(target) {
+			val jdkVersion = libs.getVersion("jdkVersion").requiredVersion.toInt()
+
 			pluginManager.apply {
 				apply("org.jetbrains.kotlin.jvm")
 				apply("java-library")
 			}
 
 			extensions.configure<JavaPluginExtension> {
-				sourceCompatibility = JavaVersion.VERSION_17
-				targetCompatibility = JavaVersion.VERSION_17
+				sourceCompatibility = JavaVersion.toVersion(jdkVersion)
+				targetCompatibility = JavaVersion.toVersion(jdkVersion)
 			}
 
 			extensions.configure<KotlinProjectExtension> {
-				jvmToolchain(libs.getVersion("jdkVersion").requiredVersion.toInt())
+				jvmToolchain(jdkVersion)
 			}
 
 			dependencies {
