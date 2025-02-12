@@ -27,6 +27,11 @@
 		android:supportsRtl="true"
 		android:theme="@style/Theme.Mapisode"
 		tools:targetApi="31">
+
+		<uses-native-library android:name="libOpenCL.so" android:required="false"/>
+		<uses-native-library android:name="libOpenCL-car.so" android:required="false"/>
+		<uses-native-library android:name="libOpenCL-pixel.so" android:required="false"/>
+
 		<meta-data
 			android:name="com.naver.maps.map.CLIENT_ID"
 			android:value="${NAVER_MAPS_CLIENT_ID}" />
