@@ -76,7 +76,6 @@ fun AiEpisodeRoute(
 				viewModel.onIntent(AiEpisodeIntent.BackToHome)
 			},
 			onPermissionDenied = {
-
 				viewModel.onIntent(AiEpisodeIntent.BackToHome)
 			},
 		)
@@ -112,6 +111,7 @@ internal fun AiEpisodeScreen(
 	submitAiEpisode: () -> Unit,
 ) {
 	MapisodeScaffold(
+		isStatusBarPaddingExist = true,
 		isNavigationBarPaddingExist = true,
 		topBar = {
 			AiEpisodeTopBar(
@@ -127,7 +127,7 @@ internal fun AiEpisodeScreen(
 			contentAlignment = Alignment.Center,
 		) {
 			Column(
-				modifier = Modifier.fillMaxWidth(0.9f),
+				modifier = Modifier.fillMaxWidth(0.85f),
 				horizontalAlignment = Alignment.CenterHorizontally,
 			) {
 				Spacer(modifier = Modifier.weight(3f))

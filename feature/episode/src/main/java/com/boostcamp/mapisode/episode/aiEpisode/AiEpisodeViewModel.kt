@@ -139,5 +139,4 @@ class AiEpisodeViewModel @Inject constructor(
 		)
 		postSideEffect(AiEpisodeSideEffect.NavigateToHome)
 	}
-
 }
