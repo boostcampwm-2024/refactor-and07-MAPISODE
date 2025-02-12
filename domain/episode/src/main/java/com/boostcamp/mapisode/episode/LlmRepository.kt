@@ -1,4 +1,4 @@
-package com.boostcamp.ai
+package com.boostcamp.mapisode.episode
 
 interface LlmRepository {
 	fun generateLlm(text: String): String

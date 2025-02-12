@@ -1,6 +1,6 @@
 package com.boostcamp.ai.translation
 
-import com.boostcamp.ai.TranslationRepository
+import com.boostcamp.mapisode.episode.TranslationRepository
 import com.google.mlkit.common.model.DownloadConditions
 import com.google.mlkit.common.model.RemoteModelManager
 import com.google.mlkit.nl.translate.TranslateLanguage
@@ -10,7 +10,7 @@ import com.google.mlkit.nl.translate.TranslatorOptions
 import timber.log.Timber
 import javax.inject.Inject
 
-class TranslationRepositoryImpl @Inject constructor() : TranslationRepository {
+class TranslationRepositoryImpl: TranslationRepository {
 
 	private val options = TranslatorOptions.Builder()
 		.setSourceLanguage(TranslateLanguage.ENGLISH)
@@ -47,7 +47,7 @@ class TranslationRepositoryImpl @Inject constructor() : TranslationRepository {
 			}
 	}
 
-	override fun translate(text: String): String {
+	override fun translate(text: String): List<String> {
 		var result = ""
 		if (isModelReady) {
 			englishKoreanTranslator.translate(text)
@@ -58,7 +58,7 @@ class TranslationRepositoryImpl @Inject constructor() : TranslationRepository {
 		} else {
 			result = "Model is not ready"
 		}
-		return result
+		return result.split("\n")
 	}
 
 	override fun close() {

@@ -1,12 +1,12 @@
 package com.boostcamp.ai.di
 
 import android.content.Context
-import com.boostcamp.ai.ImageCaptionRepository
-import com.boostcamp.ai.LlmRepository
-import com.boostcamp.ai.TranslationRepository
 import com.boostcamp.ai.imagecaption.ImageCaptionRepositoryImpl
 import com.boostcamp.ai.llm.LlmRepositoryImpl
 import com.boostcamp.ai.translation.TranslationRepositoryImpl
+import com.boostcamp.mapisode.episode.ImageCaptionRepository
+import com.boostcamp.mapisode.episode.LlmRepository
+import com.boostcamp.mapisode.episode.TranslationRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

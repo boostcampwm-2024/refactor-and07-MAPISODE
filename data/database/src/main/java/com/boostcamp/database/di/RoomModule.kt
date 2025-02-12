@@ -19,7 +19,7 @@ object RoomModule {
 	fun provideEpisodeDB(@ApplicationContext context: Context): EpisodeDatabase = Room.databaseBuilder(
 		context = context,
 		klass = EpisodeDatabase::class.java,
-		name = "episode.db"
+		name = "episode.db",
 	).build()
 
 	@Provides

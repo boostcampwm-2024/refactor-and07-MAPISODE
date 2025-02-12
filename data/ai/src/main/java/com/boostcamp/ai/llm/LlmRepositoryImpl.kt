@@ -1,11 +1,12 @@
 package com.boostcamp.ai.llm
 
 import android.content.Context
-import com.boostcamp.ai.LlmRepository
+import com.boostcamp.mapisode.episode.LlmRepository
 import com.google.mediapipe.tasks.genai.llminference.LlmInference
+import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 
-class LlmRepositoryImpl @Inject constructor(context: Context) : LlmRepository {
+class LlmRepositoryImpl (context: Context) : LlmRepository {
 	private val options = LlmInference.LlmInferenceOptions.builder()
 		.setModelPath("/data/local/tmp/llm/gemma-2b-it-gpu-int4.bin")
 		.setMaxTokens(10000)
@@ -14,10 +15,12 @@ class LlmRepositoryImpl @Inject constructor(context: Context) : LlmRepository {
 		.setRandomSeed(101)
 		.build()
 
-	private fun inputPrompt(description: String) =
-		"""Make a story about the description below. Under 300 words.
+	private fun inputPrompt(description: String) = """
 		$description
-		""".trimMargin()
+		Based on the above, please summarize what happened during the day.
+		Please return the results in three categories in order of title, tag, and content, separated by one-line spacing.
+		The number of subject characters should be no more than 8 characters, the tag should be 5 using ",", and the content should be 200 characters.
+	""".trimIndent()
 
 	private val llmInference: LlmInference = LlmInference.createFromOptions(context, options)
 

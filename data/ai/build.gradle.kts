@@ -25,7 +25,7 @@ android {
 }
 
 dependencies {
-	implementation(projects.domain.ai)
 	implementation(libs.mediapipe.tasks.genai)
 	implementation(libs.translate)
+	implementation(projects.domain.episode)
 }

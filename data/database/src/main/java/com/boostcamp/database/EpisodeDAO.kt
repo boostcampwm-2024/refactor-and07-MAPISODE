@@ -2,28 +2,35 @@ package com.boostcamp.database
 
 import androidx.room.Dao
 import androidx.room.Query
-import com.boostcamp.mapisode.model.EpisodeModel
+import com.boostcamp.database.model.EpisodeRoomEntity
 import kotlinx.coroutines.flow.Flow
+import java.util.Date
 
 @Dao
 interface EpisodeDAO {
-	@Query("SELECT * FROM EpisodeRoomEntity")
-	fun getAllEpisodes(): Flow<EpisodeModel>
+	@Query("SELECT * FROM EpisodeRoomEntity WHERE `group` = :group")
+	fun getAllEpisodesByGroup(group: String): Flow<EpisodeRoomEntity>
 
-	@Query("INSERT OR REPLACE INTO EpisodeRoomEntity (id, category, content, createdBy, `group`, imageUrls, address, location, memoryDate, tags, title, createdAt) VALUES (:id, :category, :content, :createdBy, :group, :imageUrls, :address, :location, :memoryDate, :tags, :title, :createdAt)")
-	fun insertEpisode(
-		episode: EpisodeModel,
-		id: String = episode.id,
-		category: String = episode.category,
-		content: String = episode.content,
-		createdBy: String = episode.createdBy,
-		group: String = episode.group,
-		imageUrls: List<String> = episode.imageUrls,
-		address: String = episode.address,
-		location: Pair<Double, Double> = episode.location.latitude to episode.location.longitude,
-		memoryDate: String = episode.memoryDate.toString(),
-		tags: List<String> = episode.tags,
-		title: String = episode.title,
-		createdAt: String = episode.createdAt.toString(),
+	@Query("""
+        INSERT OR REPLACE INTO EpisodeRoomEntity
+        (id, category, content, createdBy, `group`, imageUrls, address, location, memoryDate, tags, title, createdAt, createdByName, imageUrlsUsedForOnlyUpdate)
+        VALUES
+        (:id, :category, :content, :createdBy, :group, :imageUrls, :address, :location, :memoryDate, :tags, :title, :createdAt, :createdByName, :imageUrlsUsedForOnlyUpdate)
+    """)
+	suspend fun insertEpisode(
+		id: String,
+		category: String,
+		content: String,
+		createdBy: String,
+		group: String,
+		imageUrls: List<String>,
+		address: String,
+		location: Pair<Double, Double>,
+		memoryDate: String,
+		tags: List<String>,
+		title: String,
+		createdAt: Date,
+		createdByName: String?,
+		imageUrlsUsedForOnlyUpdate: List<String>?
 	)
 }
