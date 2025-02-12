@@ -1,6 +1,5 @@
 plugins {
 	alias(libs.plugins.mapisode.data)
-	alias(libs.plugins.ksp)
 	alias(libs.plugins.room)
 }
 
