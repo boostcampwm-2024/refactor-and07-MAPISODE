@@ -4,16 +4,14 @@ import android.content.Context
 import android.net.Uri
 import com.boostcamp.mapisode.ai.BuildConfig
 import com.boostcamp.mapisode.episode.ImageCaptionRepository
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.HttpException
 import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
-import javax.inject.Inject
 
-class ImageCaptionRepositoryImpl (private val context: Context) : ImageCaptionRepository {
+class ImageCaptionRepositoryImpl(private val context: Context) : ImageCaptionRepository {
 	private val endPoint: String = BuildConfig.AZURE_ENDPOINT
 	private val subscriptionKey: String = BuildConfig.AZURE_SUBSCRIPTION_KEY
 

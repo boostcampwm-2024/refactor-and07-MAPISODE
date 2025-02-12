@@ -11,12 +11,14 @@ interface EpisodeDAO {
 	@Query("SELECT * FROM EpisodeRoomEntity WHERE `group` = :group")
 	fun getAllEpisodesByGroup(group: String): Flow<EpisodeRoomEntity>
 
-	@Query("""
+	@Query(
+		"""
         INSERT OR REPLACE INTO EpisodeRoomEntity
         (id, category, content, createdBy, `group`, imageUrls, address, location, memoryDate, tags, title, createdAt, createdByName, imageUrlsUsedForOnlyUpdate)
         VALUES
         (:id, :category, :content, :createdBy, :group, :imageUrls, :address, :location, :memoryDate, :tags, :title, :createdAt, :createdByName, :imageUrlsUsedForOnlyUpdate)
-    """)
+    """,
+	)
 	suspend fun insertEpisode(
 		id: String,
 		category: String,
@@ -31,6 +33,6 @@ interface EpisodeDAO {
 		title: String,
 		createdAt: Date,
 		createdByName: String?,
-		imageUrlsUsedForOnlyUpdate: List<String>?
+		imageUrlsUsedForOnlyUpdate: List<String>?,
 	)
 }

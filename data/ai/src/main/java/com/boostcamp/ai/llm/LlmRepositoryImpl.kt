@@ -3,10 +3,8 @@ package com.boostcamp.ai.llm
 import android.content.Context
 import com.boostcamp.mapisode.episode.LlmRepository
 import com.google.mediapipe.tasks.genai.llminference.LlmInference
-import dagger.hilt.android.qualifiers.ApplicationContext
-import javax.inject.Inject
 
-class LlmRepositoryImpl (context: Context) : LlmRepository {
+class LlmRepositoryImpl(context: Context) : LlmRepository {
 	private val options = LlmInference.LlmInferenceOptions.builder()
 		.setModelPath("/data/local/tmp/llm/gemma-2b-it-gpu-int4.bin")
 		.setMaxTokens(10000)

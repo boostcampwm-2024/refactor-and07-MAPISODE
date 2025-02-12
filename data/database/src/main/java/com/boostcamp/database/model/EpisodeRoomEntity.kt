@@ -9,7 +9,7 @@ import java.util.Date
 @Entity
 data class EpisodeRoomEntity(
 	@PrimaryKey
-    val id: String,
+	val id: String,
 	val category: String,
 	val content: String,
 	val createdBy: String,
