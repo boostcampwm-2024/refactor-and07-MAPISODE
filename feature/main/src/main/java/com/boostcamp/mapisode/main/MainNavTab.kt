@@ -14,10 +14,10 @@ internal enum class MainNavTab(
 		contentDescription = "홈",
 		route = MainRoute.Home,
 	),
-	EPISODE(
+	AIEPISODE(
 		iconResId = R.drawable.ic_edit_note,
 		contentDescription = "새 에피소드",
-		route = MainRoute.Episode(),
+		route = MainRoute.AiEpisode,
 	),
 	GROUP(
 		iconResId = R.drawable.ic_groups_2,

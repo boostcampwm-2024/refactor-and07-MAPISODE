@@ -10,9 +10,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navOptions
-import com.boostcamp.mapisode.episode.navigation.navigatePickLocation
-import com.boostcamp.mapisode.episode.navigation.navigateWriteContent
-import com.boostcamp.mapisode.episode.navigation.navigateWriteInfo
 import com.boostcamp.mapisode.home.navigation.navigateEpisodeDetail
 import com.boostcamp.mapisode.home.navigation.navigateEpisodeEdit
 import com.boostcamp.mapisode.home.navigation.navigateEpisodeList
@@ -51,14 +48,7 @@ internal class MainNavigator(
 
 		when (tab) {
 			MainNavTab.HOME -> navController.navigate(MainNavTab.HOME.route, navOptions)
-			MainNavTab.EPISODE -> navController.navigate(
-				MainRoute.Episode(
-					lat = latLng?.latitude,
-					lng = latLng?.longitude,
-				),
-				navOptions,
-			)
-
+			MainNavTab.AIEPISODE -> navController.navigate(MainNavTab.AIEPISODE.route, navOptions)
 			MainNavTab.GROUP -> navController.navigate(MainNavTab.GROUP.route, navOptions)
 			MainNavTab.MYPAGE -> navController.navigate(MainNavTab.MYPAGE.route, navOptions)
 		}
@@ -91,18 +81,6 @@ internal class MainNavigator(
 
 	fun popBackEpisodeToMain() {
 		navController.popBackStack(Route.Auth, inclusive = false)
-	}
-
-	fun navigateWriteInfo() {
-		navController.navigateWriteInfo()
-	}
-
-	fun navigatePickLocation() {
-		navController.navigatePickLocation()
-	}
-
-	fun navigateWriteContent() {
-		navController.navigateWriteContent()
 	}
 
 	fun navigateGroupJoin() {
