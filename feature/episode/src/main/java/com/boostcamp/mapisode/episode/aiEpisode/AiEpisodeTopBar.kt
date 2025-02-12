@@ -1,13 +1,14 @@
-package com.boostcamp.mapisode.episode
+package com.boostcamp.mapisode.episode.aiEpisode
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import com.boostcamp.mapisode.designsystem.compose.MapisodeIcon
 import com.boostcamp.mapisode.designsystem.compose.MapisodeIconButton
 import com.boostcamp.mapisode.designsystem.compose.topbar.TopAppBar
+import com.boostcamp.mapisode.episode.R
 
 @Composable
-internal fun NewEpisodeTopBar(
+internal fun AiEpisodeTopBar(
 	onClickBack: () -> Unit,
 	onClickClear: () -> Unit,
 ) {
