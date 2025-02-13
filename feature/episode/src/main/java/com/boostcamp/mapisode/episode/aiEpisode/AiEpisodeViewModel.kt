@@ -3,19 +3,22 @@ package com.boostcamp.mapisode.episode.aiEpisode
 import androidx.lifecycle.viewModelScope
 import coil3.toUri
 import com.boostcamp.mapisode.datastore.UserPreferenceDataStore
-import com.boostcamp.mapisode.episode.EpisodeRepository
+import com.boostcamp.mapisode.episode.UploadNewEpisodeUseCase
+import com.boostcamp.mapisode.model.EpisodeLatLng
+import com.boostcamp.mapisode.model.EpisodeModel
 import com.boostcamp.mapisode.mygroup.GroupRepository
 import com.boostcamp.mapisode.ui.base.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
-import timber.log.Timber
+import java.lang.System.currentTimeMillis
+import java.util.Date
 import javax.inject.Inject
 
 @HiltViewModel
 class AiEpisodeViewModel @Inject constructor(
-	private val episodeRepository: EpisodeRepository,
+	private val uploadNewEpisodeUseCase: UploadNewEpisodeUseCase,
 	private val groupRepository: GroupRepository,
 	private val userPreferenceDataStore: UserPreferenceDataStore,
 ) : BaseViewModel<AiEpisodeIntent, AiEpisodeState, AiEpisodeSideEffect>(AiEpisodeState()) {
@@ -130,13 +133,29 @@ class AiEpisodeViewModel @Inject constructor(
 
 	private fun submitAiEpisode() {
 		// ai 작업
-		Timber.e(
-			"""
-			aiText = ${currentState.aiText}
-			selectedGroups = ${currentState.selectedGroups.map { it.name }.joinToString(", ")}
-			images = ${currentState.images.joinToString(", ")}
-			""".trimIndent(),
-		)
+		viewModelScope.launch {
+			val userID = userPreferenceDataStore.getUserId().firstOrNull()
+			userID?.let {
+				uploadNewEpisodeUseCase.invoke(
+					episodeModel = EpisodeModel(
+						id = userID,
+						category = "",
+						content = "",
+						createdBy = userID,
+						createdByName = "",
+						group = currentState.selectedGroups.first().groupId,
+						imageUrls = currentState.images.map { it.toString() },
+						imageUrlsUsedForOnlyUpdate = emptyList(),
+						address = "",
+						location = EpisodeLatLng(37.5503, 126.9971),
+						memoryDate = Date(currentTimeMillis()),
+						tags = emptyList(),
+						title = "",
+						createdAt = Date(currentTimeMillis()),
+					),
+				)
+			}
+		}
 		postSideEffect(AiEpisodeSideEffect.NavigateToHome)
 	}
 }

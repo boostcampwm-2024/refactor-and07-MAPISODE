@@ -41,6 +41,7 @@ class UploadNewEpisodeUseCase @Inject constructor(
 		}
 	}
 
+	// 이미지의 개수 = 리스트 사이즈, 하나의 이미지 전체 캡션 결과는 하나의 문자열
 	private suspend fun processAI(imageUrls: List<String>, translationJobModelDownloadJob: Job): List<String> {
 		val aiResult = coroutineScope {
 			imageUrls.map { imageUrl ->
@@ -49,7 +50,7 @@ class UploadNewEpisodeUseCase @Inject constructor(
 				}
 			}.awaitAll()
 		}
-		val llm = llmRepository.generateLlm(aiResult.joinToString("\n"))
+		val llm = llmRepository.generateLlm(aiResult.joinToString("\n") { it.joinToString("\n") })
 		translationJobModelDownloadJob.join()
 		return translationRepository.translate(llm)
 	}

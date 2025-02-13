@@ -32,7 +32,7 @@ interface EpisodeDAO {
 		tags: List<String>,
 		title: String,
 		createdAt: Date,
-		createdByName: String?,
-		imageUrlsUsedForOnlyUpdate: List<String>?,
+		createdByName: String,
+		imageUrlsUsedForOnlyUpdate: List<String>,
 	)
 }

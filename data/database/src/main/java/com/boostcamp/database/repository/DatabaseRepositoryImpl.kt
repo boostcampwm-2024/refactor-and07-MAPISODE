@@ -25,7 +25,7 @@ class DatabaseRepositoryImpl(private val roomDAO: EpisodeDAO) :
 			title = en.title,
 			createdAt = en.createdAt,
 			createdByName = en.createdByName,
-			imageUrlsUsedForOnlyUpdate = en.imageUrlsUsedForOnlyUpdate?.split(","),
+			imageUrlsUsedForOnlyUpdate = en.imageUrlsUsedForOnlyUpdate.split(","),
 		)
 	}
 

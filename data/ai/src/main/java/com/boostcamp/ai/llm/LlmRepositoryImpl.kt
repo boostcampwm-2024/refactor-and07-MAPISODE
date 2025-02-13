@@ -3,6 +3,7 @@ package com.boostcamp.ai.llm
 import android.content.Context
 import com.boostcamp.mapisode.episode.LlmRepository
 import com.google.mediapipe.tasks.genai.llminference.LlmInference
+import timber.log.Timber
 
 class LlmRepositoryImpl(context: Context) : LlmRepository {
 	private val options = LlmInference.LlmInferenceOptions.builder()
@@ -17,12 +18,15 @@ class LlmRepositoryImpl(context: Context) : LlmRepository {
 		$description
 		Based on the above, please summarize what happened during the day.
 		Please return the results in three categories in order of title, tag, and content, separated by one-line spacing.
-		The number of subject characters should be no more than 8 characters, the tag should be 5 using ",", and the content should be 200 characters.
+		You should return only the result containing the title, tag, and content with "\n" as the separator.
+		The number of title's characters should be no more than 8 characters, the tag should be 5 with "," as the separator, and the content should be around 200 characters.
 	""".trimIndent()
 
 	private val llmInference: LlmInference = LlmInference.createFromOptions(context, options)
 
 	override fun generateLlm(text: String): String {
-		return llmInference.generateResponse(inputPrompt(text))
+		val result = llmInference.generateResponse(inputPrompt(text))
+		Timber.e("Llm result: $result")
+		return result
 	}
 }
