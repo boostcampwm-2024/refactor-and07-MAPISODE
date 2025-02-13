@@ -15,12 +15,19 @@ class LlmRepositoryImpl(context: Context) : LlmRepository {
 		.build()
 
 	private fun inputPrompt(description: String) = """
-		$description
-		Based on the above, please summarize what happened during the day.
-		Please return the results in three categories in order of title, tag, and content, separated by one-line spacing.
-		You should return only the result containing the title, tag, and content with "\n" as the separator.
-		The number of title's characters should be no more than 8 characters, the tag should be 5 with "," as the separator, and the content should be around 200 characters.
-	""".trimIndent()
+		Description: [$description]
+
+		You are an AI assistant that analyzes descriptions and infers the overall activity or event that likely took place. Your goal is to piece together these individual observations into a coherent story or activity.
+
+		Please follow these guidelines:
+		1. Analyze the objects, people, actions, and environment mentioned in the description
+		2. Make logical inferences about the activities that took place
+		3. Present your analysis in the following format:
+		   ## title: A concise heading that captures the main activity/event (1-5 words)
+		   ## tags: 2-4 relevant keywords or categories (separated by commas)
+		   ## content: A 2-3 sentence summary of what likely happened, based on the description
+
+		""".trimIndent()
 
 	private val llmInference: LlmInference = LlmInference.createFromOptions(context, options)
 
