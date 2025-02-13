@@ -21,8 +21,8 @@ data class EpisodeRoomEntity(
 	val tags: String,
 	val title: String,
 	val createdAt: Date,
-	val createdByName: String? = null,
-	val imageUrlsUsedForOnlyUpdate: String? = null,
+	val createdByName: String,
+	val imageUrlsUsedForOnlyUpdate: String,
 )
 
 fun EpisodeModel.toEpisodeRoomEntity(): EpisodeRoomEntity {
@@ -58,7 +58,7 @@ fun EpisodeRoomEntity.toEpisodeModel(): EpisodeModel {
 		tags = tags.split(","),
 		title = title,
 		createdAt = createdAt,
-		createdByName = createdByName ?: "",
-		imageUrlsUsedForOnlyUpdate = imageUrlsUsedForOnlyUpdate?.split(",") ?: emptyList(),
+		createdByName = createdByName,
+		imageUrlsUsedForOnlyUpdate = imageUrlsUsedForOnlyUpdate.split(","),
 	)
 }

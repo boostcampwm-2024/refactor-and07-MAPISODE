@@ -10,6 +10,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.HttpException
 import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
+import timber.log.Timber
 
 class ImageCaptionRepositoryImpl(private val context: Context) : ImageCaptionRepository {
 	private val endPoint: String = BuildConfig.AZURE_ENDPOINT
@@ -56,13 +57,15 @@ class ImageCaptionRepositoryImpl(private val context: Context) : ImageCaptionRep
 
 	override suspend fun generateImageCaption(imagePath: String): List<String> {
 		return try {
-			context.contentResolver.openInputStream(Uri.parse(imagePath))?.readBytes()?.let { imageBytes ->
+			val result = context.contentResolver.openInputStream(Uri.parse(imagePath))?.readBytes()?.let { imageBytes ->
 				val requestBody = imageBytes.toRequestBody("application/octet-stream".toMediaType())
 				api.analyzeImage(
 					subscriptionKey = subscriptionKey,
 					request = requestBody,
 				).denseCaptionsResult.values.map { it.text }
 			} ?: emptyList()
+			Timber.e("Image caption result: $result")
+			result
 		} catch (e: Exception) {
 			throw when (e) {
 				is HttpException -> when (e.code()) {
