@@ -46,18 +46,25 @@ class TranslationRepositoryImpl : TranslationRepository {
 			}
 	}
 
-	override fun translate(text: String): List<String> {
+	override fun translate(
+		text: String,
+		callback: (String) -> Unit
+	): List<String> {
 		var result = ""
 		if (isModelReady) {
 			englishKoreanTranslator.translate(text)
-				.addOnSuccessListener { result = it }
+				.addOnSuccessListener {
+					Timber.e("Translation result for 1 line: $it")
+					callback(it)
+					result = it
+				}
 				.addOnFailureListener { exception ->
 					result = "Translation failed: $exception"
 				}
 		} else {
 			result = "Model is not ready"
 		}
-		return result.split("\n")
+		return result.split("##")
 	}
 
 	override fun close() {
