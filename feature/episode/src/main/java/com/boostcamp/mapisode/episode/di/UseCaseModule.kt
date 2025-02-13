@@ -4,6 +4,7 @@ import com.boostcamp.mapisode.episode.DatabaseRepository
 import com.boostcamp.mapisode.episode.EpisodeRepository
 import com.boostcamp.mapisode.episode.ImageCaptionRepository
 import com.boostcamp.mapisode.episode.LlmRepository
+import com.boostcamp.mapisode.episode.Logger
 import com.boostcamp.mapisode.episode.TranslationRepository
 import com.boostcamp.mapisode.episode.UploadNewEpisodeUseCase
 import dagger.Module
@@ -23,6 +24,7 @@ object UseCaseModule {
 		llmRepository: LlmRepository,
 		translationRepository: TranslationRepository,
 		databaseRepository: DatabaseRepository,
+		logger: Logger
 	): UploadNewEpisodeUseCase {
 		return UploadNewEpisodeUseCase(
 			episodeRepository,
@@ -30,6 +32,7 @@ object UseCaseModule {
 			llmRepository,
 			translationRepository,
 			databaseRepository,
+			logger
 		)
 	}
 }
