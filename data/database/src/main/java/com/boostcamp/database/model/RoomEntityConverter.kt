@@ -3,16 +3,7 @@ package com.boostcamp.database.model
 import androidx.room.TypeConverter
 import java.util.Date
 
-class EpisodeRoomEntityConverter {
-	@TypeConverter
-	fun fromListToString(list: List<String>): String {
-		return list.joinToString(",")
-	}
-
-	@TypeConverter
-	fun fromStringToList(value: String): List<String> {
-		return value.split(",")
-	}
+class RoomEntityConverter {
 
 	@TypeConverter
 	fun fromPairToString(pair: Pair<Double, Double>): String {

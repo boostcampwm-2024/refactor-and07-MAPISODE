@@ -1,4 +1,4 @@
-package com.boostcamp.mapisode.episode.di
+package com.boostcamp.database.di
 
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.FirebaseFirestore
@@ -12,10 +12,10 @@ import dagger.hilt.components.SingletonComponent
 
 @Module
 @InstallIn(SingletonComponent::class)
-object DataModule {
+object FirebaseModule {
 	@Provides
-	fun provideFirebaseFirestore(): FirebaseFirestore = Firebase.firestore
+	fun provideFirestore(): FirebaseFirestore = Firebase.firestore
 
 	@Provides
-	fun provideFirebaseStorage(): FirebaseStorage = Firebase.storage
+	fun provideStorage(): FirebaseStorage = Firebase.storage
 }
