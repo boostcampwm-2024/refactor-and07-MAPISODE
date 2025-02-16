@@ -48,7 +48,7 @@ class TranslationRepositoryImpl : TranslationRepository {
 
 	override fun translate(
 		text: String,
-		callback: (String) -> Unit
+		callback: (String) -> Unit,
 	): List<String> {
 		var result = ""
 		if (isModelReady) {

@@ -27,7 +27,7 @@ class LlmRepositoryImpl(context: Context) : LlmRepository {
 		   ## tags: 2-4 relevant keywords or categories (separated by commas)
 		   ## content: A 2-3 sentence summary of what likely happened, based on the description
 
-		""".trimIndent()
+	""".trimIndent()
 
 	private val llmInference: LlmInference = LlmInference.createFromOptions(context, options)
 

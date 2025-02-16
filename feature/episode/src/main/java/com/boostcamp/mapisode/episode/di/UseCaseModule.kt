@@ -24,7 +24,7 @@ object UseCaseModule {
 		llmRepository: LlmRepository,
 		translationRepository: TranslationRepository,
 		databaseRepository: DatabaseRepository,
-		logger: Logger
+		logger: Logger,
 	): UploadNewEpisodeUseCase {
 		return UploadNewEpisodeUseCase(
 			episodeRepository,
@@ -32,7 +32,7 @@ object UseCaseModule {
 			llmRepository,
 			translationRepository,
 			databaseRepository,
-			logger
+			logger,
 		)
 	}
 }
