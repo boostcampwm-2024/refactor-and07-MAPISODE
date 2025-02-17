@@ -27,4 +27,12 @@ data class EpisodeState(
 	),
 	val isCameraMoving: Boolean = false,
 	val episodeAddress: String = "",
+
+	// 내용 입력
+	val userInput: String = "",
+	val generatedEpisodes: PersistentList<String> = persistentListOf(),
+	val imageCaption: String = "",
+	val selectedEpisode: String = "",
+	val selfTypedEpisode: String = "",
+	val isEpisodeSelected: Boolean = false,
 ) : UiState
