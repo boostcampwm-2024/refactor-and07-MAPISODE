@@ -9,5 +9,6 @@ import kotlinx.collections.immutable.persistentListOf
 @Immutable
 data class EpisodeState(
 	val isInitializing: Boolean = true,
+	val imageUrls: PersistentList<String> = persistentListOf(),
 	val groups: PersistentList<GroupModel> = persistentListOf(),
 ) : UiState
