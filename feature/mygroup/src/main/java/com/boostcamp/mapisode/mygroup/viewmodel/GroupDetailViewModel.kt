@@ -2,8 +2,8 @@ package com.boostcamp.mapisode.mygroup.viewmodel
 
 import androidx.lifecycle.viewModelScope
 import com.boostcamp.mapisode.datastore.UserPreferenceDataStore
-import com.boostcamp.mapisode.episode.EpisodeRepository
-import com.boostcamp.mapisode.mygroup.GroupRepository
+import com.boostcamp.mapisode.episode.repository.EpisodeRepository
+import com.boostcamp.mapisode.episode.repository.GroupRepository
 import com.boostcamp.mapisode.mygroup.R
 import com.boostcamp.mapisode.mygroup.intent.GroupDetailIntent
 import com.boostcamp.mapisode.mygroup.model.GroupUiMemberModel

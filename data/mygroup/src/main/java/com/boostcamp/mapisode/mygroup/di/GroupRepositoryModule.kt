@@ -1,6 +1,6 @@
 package com.boostcamp.mapisode.mygroup.di
 
-import com.boostcamp.mapisode.mygroup.GroupRepository
+import com.boostcamp.mapisode.episode.repository.GroupRepository
 import com.boostcamp.mapisode.mygroup.GroupRepositoryImpl
 import dagger.Binds
 import dagger.Module

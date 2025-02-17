@@ -1,4 +1,4 @@
-package com.boostcamp.database.di
+package com.boostcamp.mapisode.episode.di
 
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.FirebaseFirestore

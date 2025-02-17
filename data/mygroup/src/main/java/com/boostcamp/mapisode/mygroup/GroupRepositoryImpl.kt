@@ -1,6 +1,7 @@
 package com.boostcamp.mapisode.mygroup
 
 import androidx.core.net.toUri
+import com.boostcamp.mapisode.episode.repository.GroupRepository
 import com.boostcamp.mapisode.firebase.firestore.FirestoreConstants
 import com.boostcamp.mapisode.model.EpisodeModel
 import com.boostcamp.mapisode.model.GroupMemberModel

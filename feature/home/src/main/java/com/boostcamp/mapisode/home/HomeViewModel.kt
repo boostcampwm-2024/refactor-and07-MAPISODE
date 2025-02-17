@@ -4,12 +4,12 @@ import androidx.lifecycle.viewModelScope
 import com.boostcamp.mapisode.common.util.distanceTo
 import com.boostcamp.mapisode.common.util.toEpisodeLatLng
 import com.boostcamp.mapisode.datastore.UserPreferenceDataStore
-import com.boostcamp.mapisode.episode.EpisodeRepository
+import com.boostcamp.mapisode.episode.repository.EpisodeRepository
+import com.boostcamp.mapisode.episode.repository.GroupRepository
 import com.boostcamp.mapisode.home.common.ChipType
 import com.boostcamp.mapisode.home.common.HomeConstant.DEFAULT_ZOOM
 import com.boostcamp.mapisode.model.EpisodeLatLng
 import com.boostcamp.mapisode.model.EpisodeModel
-import com.boostcamp.mapisode.mygroup.GroupRepository
 import com.boostcamp.mapisode.ui.base.BaseViewModel
 import com.naver.maps.geometry.LatLng
 import com.naver.maps.map.CameraPosition

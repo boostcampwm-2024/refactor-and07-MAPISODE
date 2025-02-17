@@ -4,6 +4,7 @@ import androidx.core.net.toUri
 import com.boostcamp.mapisode.common.util.UuidGenerator
 import com.boostcamp.mapisode.episode.model.EpisodeFirestoreModel
 import com.boostcamp.mapisode.episode.model.toFirestoreModelForUpdate
+import com.boostcamp.mapisode.episode.repository.EpisodeRepository
 import com.boostcamp.mapisode.firebase.firestore.FirestoreConstants
 import com.boostcamp.mapisode.firebase.firestore.StorageConstants.PATH_IMAGES
 import com.boostcamp.mapisode.model.EpisodeLatLng

@@ -1,4 +1,4 @@
-package com.boostcamp.mapisode.mygroup
+package com.boostcamp.mapisode.episode.repository
 
 import com.boostcamp.mapisode.model.EpisodeModel
 import com.boostcamp.mapisode.model.GroupMemberModel

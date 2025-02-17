@@ -40,9 +40,6 @@ interface RoomDAO {
 	@Query("SELECT * FROM GroupRoomEntity")
 	fun getAllGroups(): Flow<List<GroupRoomEntity>>
 
-	@Query("SELECT * FROM GroupRoomEntity WHERE id = :groupId")
-	fun getGroupByGroupId(groupId: String): Flow<GroupRoomEntity>
-
 	@Query(
 		"""
 		INSERT OR REPLACE INTO GroupRoomEntity
@@ -60,4 +57,32 @@ interface RoomDAO {
 		name: String,
 		members: String,
 	)
+
+	@Query("SELECT * FROM EpisodeRoomEntity WHERE `group` = :groupId AND category = :category")
+	fun getEpisodeByGroupAndCategory(groupId: String, category: String): Flow<List<EpisodeRoomEntity>>
+
+	@Query("SELECT * FROM EpisodeRoomEntity WHERE id = :episodeId")
+	fun getEpisodeByEpisodeId(episodeId: String): Flow<EpisodeRoomEntity>
+
+	@Query("SELECT * FROM EpisodeRoomEntity WHERE `group` = :groupId ORDER BY createdAt DESC LIMIT 1")
+	fun getMostRecentEpisodeByGroup(groupId: String): Flow<EpisodeRoomEntity>
+
+	@Query("SELECT * FROM GroupRoomEntity WHERE id = :groupId")
+	fun getGroupByGroupId(groupId: String): Flow<GroupRoomEntity>
+
+	@Query(
+		"""
+		SELECT * FROM EpisodeRoomEntity
+		WHERE `group` = :groupId
+		AND location >= :start
+		AND location <= :end
+		AND category = :category
+	""",
+	)
+	fun getEpisodesByGroupAndLocation(
+		groupId: String,
+		start: Pair<Double, Double>,
+		end: Pair<Double, Double>,
+		category: String?,
+	): Flow<List<EpisodeRoomEntity>>
 }

@@ -1,7 +1,7 @@
 package com.boostcamp.mapisode.mygroup.viewmodel
 
 import androidx.lifecycle.viewModelScope
-import com.boostcamp.mapisode.mygroup.GroupRepository
+import com.boostcamp.mapisode.episode.repository.GroupRepository
 import com.boostcamp.mapisode.mygroup.R
 import com.boostcamp.mapisode.mygroup.intent.GroupEditIntent
 import com.boostcamp.mapisode.mygroup.model.toGroupCreationModel

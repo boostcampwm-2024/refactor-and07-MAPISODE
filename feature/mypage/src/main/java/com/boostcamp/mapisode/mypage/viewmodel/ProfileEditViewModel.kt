@@ -2,7 +2,7 @@ package com.boostcamp.mapisode.mypage.viewmodel
 
 import androidx.lifecycle.viewModelScope
 import com.boostcamp.mapisode.datastore.UserPreferenceDataStore
-import com.boostcamp.mapisode.mygroup.GroupRepository
+import com.boostcamp.mapisode.episode.repository.GroupRepository
 import com.boostcamp.mapisode.mypage.R
 import com.boostcamp.mapisode.mypage.intent.ProfileEditIntent
 import com.boostcamp.mapisode.mypage.sideeffect.ProfileEditSideEffect
@@ -118,14 +118,14 @@ class ProfileEditViewModel @Inject constructor(
 		}
 	}
 
-	private suspend fun updateMyGroupProfileUrl(url: String) {
+	private fun updateMyGroupProfileUrl(url: String) {
 		viewModelScope.launch {
 			val myGroup = groupRepository.getGroupByGroupId(currentState.uid)
 			groupRepository.updateGroup(myGroup.copy(imageUrl = url))
 		}
 	}
 
-	private suspend fun storeInUserPreferenceDataStore() {
+	private fun storeInUserPreferenceDataStore() {
 		viewModelScope.launch {
 			with(userPreferenceDataStore) {
 				updateUsername(currentState.name)
@@ -134,7 +134,7 @@ class ProfileEditViewModel @Inject constructor(
 		}
 	}
 
-	private suspend fun storeInUserRepository() {
+	private fun storeInUserRepository() {
 		viewModelScope.launch {
 			userRepository.updateUserNameAndProfileUrl(
 				uid = currentState.uid,

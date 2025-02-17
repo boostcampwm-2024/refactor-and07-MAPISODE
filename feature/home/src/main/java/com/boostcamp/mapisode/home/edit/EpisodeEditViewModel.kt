@@ -3,9 +3,9 @@ package com.boostcamp.mapisode.home.edit
 import androidx.lifecycle.viewModelScope
 import com.boostcamp.mapisode.common.util.toEpisodeLatLng
 import com.boostcamp.mapisode.datastore.UserPreferenceDataStore
-import com.boostcamp.mapisode.episode.EpisodeRepository
+import com.boostcamp.mapisode.episode.repository.EpisodeRepository
+import com.boostcamp.mapisode.episode.repository.GroupRepository
 import com.boostcamp.mapisode.home.R
-import com.boostcamp.mapisode.mygroup.GroupRepository
 import com.boostcamp.mapisode.network.repository.NaverMapsRepository
 import com.boostcamp.mapisode.ui.base.BaseViewModel
 import com.naver.maps.geometry.LatLng
