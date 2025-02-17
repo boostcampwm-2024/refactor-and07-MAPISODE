@@ -1,21 +1,17 @@
 package com.boostcamp.mapisode.episode.screen
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
+import android.annotation.SuppressLint
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBars
-import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import com.boostcamp.mapisode.designsystem.theme.MapisodeTheme
 import com.boostcamp.mapisode.episode.EpisodeViewModel
+import com.boostcamp.mapisode.episode.state.EpisodeEffect
+import com.boostcamp.mapisode.episode.state.EpisodeIntent
+import com.boostcamp.mapisode.ui.photopicker.MapisodePhotoPicker
 
 @Composable
 fun EpisodePhotoRoute(
@@ -23,39 +19,43 @@ fun EpisodePhotoRoute(
 	onCompletePhotoPicker: () -> Unit,
 	viewModel: EpisodeViewModel,
 ) {
+	LaunchedEffect(Unit) {
+		viewModel.effect.collect {
+			when (it) {
+				is EpisodeEffect.NavigateToPreviousScreen -> onBackClick()
+				is EpisodeEffect.NavigateToInfoScreen -> onCompletePhotoPicker()
+			}
+		}
+	}
+
 	EpisodePhotoScreen(
-		onBackClick = onBackClick,
-		onCompletePhotoPicker = onCompletePhotoPicker,
+		onBackClick = { viewModel.sendIntent(EpisodeIntent.OnBackClick) },
+		onSetImages = { images -> viewModel.sendIntent(EpisodeIntent.OnCompletePhotoPicker(images)) },
 	)
 }
 
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun EpisodePhotoScreen(
 	onBackClick: () -> Unit,
-	onCompletePhotoPicker: () -> Unit,
+	onSetImages: (List<String>) -> Unit,
 ) {
 	Scaffold(
-		modifier = Modifier
-			.fillMaxSize()
-			.padding(
-				top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding(),
-				bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding(),
-			),
-		topBar = { EpisodeTopBar(title = "사진 선택", onBackClick = onBackClick) },
+		modifier = Modifier,
 		containerColor = MapisodeTheme.colorScheme.scaffoldBackground,
 	) {
-		Column(
-			modifier = Modifier
-				.fillMaxSize()
-				.padding(it.calculateTopPadding()),
-			horizontalAlignment = Alignment.CenterHorizontally,
-			verticalArrangement = Arrangement.Center,
+		Box(
+			modifier = Modifier.fillMaxSize(),
 		) {
-			Button(
-				onClick = onCompletePhotoPicker,
-			) {
-				Text(text = "Back")
-			}
+			MapisodePhotoPicker(
+				numOfPhoto = 4,
+				onPhotoSelected = { photos ->
+					val uris = photos.map { it.uri }
+					onSetImages(uris)
+				},
+				onBackPressed = { onBackClick() },
+				onPermissionDenied = { onBackClick() },
+			)
 		}
 	}
 }

@@ -6,5 +6,5 @@ import com.boostcamp.mapisode.ui.base.UiIntent
 @Immutable
 sealed class EpisodeIntent : UiIntent {
 	data object OnBackClick : EpisodeIntent()
-	data class OnCompletePhotoPicker(val imageUrl: String) : EpisodeIntent()
+	data class OnCompletePhotoPicker(val imageUrls: List<String>) : EpisodeIntent()
 }
