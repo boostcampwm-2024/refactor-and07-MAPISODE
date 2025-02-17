@@ -41,6 +41,7 @@ internal fun MainNavHost(
 				navigateToMain = navigator::navigateToMain,
 			)
 			addEpisodeNavGraph(
+				navController = navigator.provideNavController(),
 				onInfoPickClick = navigator::navigateToEpisodeInfo,
 				onContentPickClick = navigator::navigateToEpisodeContent,
 				onBack = navigator::popBackStackIfNotHome,
