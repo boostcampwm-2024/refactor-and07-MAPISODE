@@ -42,6 +42,7 @@ internal fun MainNavHost(
 			)
 			addEpisodeNavGraph(
 				onPopBackToMain = navigator::popBackEpisodeToMain,
+				onBack = navigator::popBackStackIfNotHome,
 			)
 			addGroupNavGraph(
 				onBackClick = navigator::popBackStackIfNotHome,

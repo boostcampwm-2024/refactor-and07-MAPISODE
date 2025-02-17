@@ -127,7 +127,11 @@ internal class MainNavigator(
 
 	@Composable
 	fun shouldShowBottomBar() = MainNavTab.contains {
-		currentDestination?.hasRoute(it::class) == true
+		if (it == MainRoute.AiEpisode) {
+			false
+		} else {
+			currentDestination?.hasRoute(it::class) == true
+		}
 	}
 }
 

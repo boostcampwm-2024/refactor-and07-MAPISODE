@@ -4,13 +4,7 @@ import kotlinx.serialization.Serializable
 
 sealed interface NewEpisodeRoute : Route {
 	@Serializable
-	data object PickPhoto : NewEpisodeRoute
-
-	@Serializable
-	data object WriteInfo : NewEpisodeRoute
-
-	@Serializable
-	data object PickLocation : NewEpisodeRoute
+	data object PickInfo : NewEpisodeRoute
 
 	@Serializable
 	data object WriteContent : NewEpisodeRoute
