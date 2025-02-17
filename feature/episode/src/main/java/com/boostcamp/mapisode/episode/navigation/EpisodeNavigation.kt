@@ -1,12 +1,16 @@
 package com.boostcamp.mapisode.episode.navigation
 
+import androidx.compose.runtime.Composable
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
-import com.boostcamp.mapisode.episode.screen.EpisodeContentScreen
-import com.boostcamp.mapisode.episode.screen.EpisodeInfoScreen
-import com.boostcamp.mapisode.episode.screen.EpisodePhotoScreen
+import androidx.navigation.compose.currentBackStackEntryAsState
+import com.boostcamp.mapisode.episode.EpisodeViewModel
+import com.boostcamp.mapisode.episode.screen.EpisodeContentRoute
+import com.boostcamp.mapisode.episode.screen.EpisodeInfoRoute
+import com.boostcamp.mapisode.episode.screen.EpisodePhotoRoute
 import com.boostcamp.mapisode.navigation.MainRoute
 import com.boostcamp.mapisode.navigation.NewEpisodeRoute
 
@@ -39,29 +43,49 @@ fun NavController.popUpStackToMain(
 }
 
 fun NavGraphBuilder.addEpisodeNavGraph(
+	navController: NavController,
 	onInfoPickClick: () -> Unit,
 	onContentPickClick: () -> Unit,
 	onBack: () -> Unit,
 	onMainBack: () -> Unit,
 ) {
 	composable<MainRoute.Episode> {
-		EpisodePhotoScreen(
+		EpisodePhotoRoute(
 			onCompletePhotoPicker = onInfoPickClick,
 			onBackClick = onBack,
+			viewModel = hiltViewModel(),
 		)
+	}
+
+	@Composable
+	fun getParentViewModel(navController: NavController): EpisodeViewModel? {
+		val parentEntry = navController.currentBackStackEntryAsState().value?.let {
+			try {
+				navController.getBackStackEntry(MainRoute.Episode)
+			} catch (e: IllegalArgumentException) {
+				null
+			}
+		}
+		return parentEntry?.let { hiltViewModel(it) }
 	}
 
 	composable<NewEpisodeRoute.PickInfo> {
-		EpisodeInfoScreen(
-			onCompleteInfoPick = onContentPickClick,
-			onBackClick = onBack,
-		)
+		getParentViewModel(navController)?.run {
+			EpisodeInfoRoute(
+				onCompleteInfoPick = onContentPickClick,
+				onBackClick = onBack,
+				viewModel = this,
+			)
+		}
 	}
 
 	composable<NewEpisodeRoute.WriteContent> {
-		EpisodeContentScreen(
-			onCompleteContentClick = onMainBack,
-			onBackClick = onBack,
-		)
+		getParentViewModel(navController)?.run {
+			EpisodeContentRoute(
+				onCompleteContentClick = onMainBack,
+				onBackClick = onBack,
+				viewModel = this,
+			)
+		}
 	}
 }

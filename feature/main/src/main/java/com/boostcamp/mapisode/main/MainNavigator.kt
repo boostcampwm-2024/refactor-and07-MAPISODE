@@ -2,7 +2,6 @@ package com.boostcamp.mapisode.main
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -58,6 +57,8 @@ internal class MainNavigator(
 		}
 	}
 
+	fun provideNavController(): NavHostController = navController
+
 	fun navigateToLogin() {
 		navController.navigate(startDestination) {
 			popUpTo(startDestination) { inclusive = true }
@@ -90,13 +91,6 @@ internal class MainNavigator(
 
 	fun navigateToEpisodeEdit(episodeId: String) {
 		navController.navigateEpisodeEdit(episodeId)
-	}
-
-	fun getEpisodeBackStackEntry(): NavBackStackEntry =
-		navController.getBackStackEntry(startDestination)
-
-	fun popBackEpisodeToMain() {
-		navController.popBackStack(Route.Auth, inclusive = false)
 	}
 
 	fun navigateGroupJoin() {
