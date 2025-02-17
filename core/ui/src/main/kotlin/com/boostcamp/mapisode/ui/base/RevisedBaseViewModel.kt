@@ -1,10 +1,7 @@
-package com.boostcamp.mapisode.mygroup.viewmodel
+package com.boostcamp.mapisode.ui.base
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.boostcamp.mapisode.ui.base.SideEffect
-import com.boostcamp.mapisode.ui.base.UiIntent
-import com.boostcamp.mapisode.ui.base.UiState
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,7 +12,7 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-abstract class GroupBaseViewModel<UI_INTENT : UiIntent, UI_STATE : UiState, UI_EFFECT : SideEffect>(
+abstract class RevisedBaseViewModel<UI_INTENT : UiIntent, UI_STATE : UiState, UI_EFFECT : SideEffect>(
 	initialState: UI_STATE,
 ) : ViewModel() {
 	private val _state = MutableStateFlow(initialState)

@@ -7,27 +7,25 @@ import com.boostcamp.mapisode.mygroup.intent.GroupEditIntent
 import com.boostcamp.mapisode.mygroup.model.toGroupCreationModel
 import com.boostcamp.mapisode.mygroup.sideeffect.GroupEditSideEffect
 import com.boostcamp.mapisode.mygroup.state.GroupEditState
+import com.boostcamp.mapisode.ui.base.RevisedBaseViewModel
+import com.boostcamp.mapisode.ui.base.retainFirstIfNavigating
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class GroupEditViewModel @Inject constructor(private val groupRepository: GroupRepository) :
-	GroupBaseViewModel<GroupEditIntent, GroupEditState, GroupEditSideEffect>(GroupEditState()) {
+	RevisedBaseViewModel<GroupEditIntent, GroupEditState, GroupEditSideEffect>(GroupEditState()) {
 
 	@OptIn(FlowPreview::class)
 	override suspend fun reducer(intent: SharedFlow<GroupEditIntent>) {
-		intent.debounce(100L)
-			.flatMapLatest { value ->
-				flowOf(value).onEach { delay(300) }
-			}
+		intent.retainFirstIfNavigating(
+			GroupEditIntent.OnGroupEditClick::class,
+			GroupEditIntent.OnGroupImageSelect::class,
+		)
 			.collect { uiIntent ->
 				when (uiIntent) {
 					is GroupEditIntent.Initialize -> {
