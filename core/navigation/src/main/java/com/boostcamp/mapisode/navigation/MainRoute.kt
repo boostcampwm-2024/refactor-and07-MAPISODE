@@ -8,7 +8,7 @@ sealed interface MainRoute : Route {
 	data object Home : MainRoute
 
 	@Serializable
-	data object AiEpisode : MainRoute
+	data object Episode : MainRoute
 
 	@Serializable
 	data object Group : MainRoute
