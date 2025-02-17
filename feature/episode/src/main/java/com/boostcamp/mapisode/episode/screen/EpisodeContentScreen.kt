@@ -1,22 +1,52 @@
 package com.boostcamp.mapisode.episode.screen
 
+import android.content.Context
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
-import androidx.compose.material3.Button
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.boostcamp.mapisode.designsystem.R
+import com.boostcamp.mapisode.designsystem.compose.MapisodeCircularLoadingIndicator
+import com.boostcamp.mapisode.designsystem.compose.MapisodeIconButton
+import com.boostcamp.mapisode.designsystem.compose.MapisodeText
+import com.boostcamp.mapisode.designsystem.compose.MapisodeTextField
+import com.boostcamp.mapisode.designsystem.compose.button.MapisodeFilledButton
+import com.boostcamp.mapisode.designsystem.compose.button.MapisodeOutlinedButton
 import com.boostcamp.mapisode.designsystem.theme.MapisodeTheme
 import com.boostcamp.mapisode.episode.EpisodeViewModel
+import com.boostcamp.mapisode.episode.state.EpisodeIntent
+import com.boostcamp.mapisode.episode.state.EpisodeState
 
 @Composable
 fun EpisodeContentRoute(
@@ -24,21 +54,61 @@ fun EpisodeContentRoute(
 	onBackClick: () -> Unit,
 	viewModel: EpisodeViewModel,
 ) {
-	val uiState = viewModel.state.collectAsStateWithLifecycle()
+	val uiState = viewModel.state.collectAsStateWithLifecycle().value
+	val context = LocalContext.current
 
 	EpisodeContentScreen(
+		uiState = uiState,
+		context = context,
+		onUserInputChange = { viewModel.sendIntent(EpisodeIntent.OnUserInputChange(it)) },
+		onGenerateLLMClick = { viewModel.sendIntent(EpisodeIntent.OnGenerateLLMClick) },
+		onSelectEpisodeClick = { generatedEpisode ->
+			viewModel.sendIntent(EpisodeIntent.OnSelectEpisodeClick(generatedEpisode))
+		},
+		onSelfTypedEpisodeChange = { viewModel.sendIntent(EpisodeIntent.OnSelfTypedEpisodeChange(it)) },
 		onCompleteInfoPick = onCompleteContentClick,
 		onBackClick = onBackClick,
 	)
+
+	if (uiState.isLoading) {
+		Box(
+			modifier = Modifier
+				.fillMaxSize()
+				.background(
+					color = MapisodeTheme.colorScheme.scrim,
+				)
+				.clickable(
+					onClick = {},
+					indication = null,
+					interactionSource = null,
+				),
+			contentAlignment = Alignment.Center,
+		) {
+			MapisodeCircularLoadingIndicator()
+		}
+	}
 }
 
 @Composable
 fun EpisodeContentScreen(
+	uiState: EpisodeState,
+	context: Context,
+	onUserInputChange: (String) -> Unit,
+	onGenerateLLMClick: () -> Unit,
+	onSelectEpisodeClick: (String) -> Unit,
+	onSelfTypedEpisodeChange: (String) -> Unit,
 	onCompleteInfoPick: () -> Unit,
 	onBackClick: () -> Unit,
 ) {
+	var valueChanged by remember { mutableStateOf(uiState.userInput) }
+
+	LaunchedEffect(uiState.userInput) {
+		valueChanged = uiState.userInput
+	}
+
 	Scaffold(
-		modifier = Modifier.fillMaxSize()
+		modifier = Modifier
+			.fillMaxSize()
 			.padding(
 				top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding(),
 				bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding(),
@@ -46,17 +116,144 @@ fun EpisodeContentScreen(
 		topBar = { EpisodeTopBar(title = "내용 입력", onBackClick = onBackClick) },
 		containerColor = MapisodeTheme.colorScheme.scaffoldBackground,
 	) {
-		Column(
+		Box(
 			modifier = Modifier
 				.fillMaxSize()
-				.padding(it.calculateTopPadding()),
-			horizontalAlignment = Alignment.CenterHorizontally,
-			verticalArrangement = Arrangement.Center,
+				.padding(top = it.calculateTopPadding()),
+			contentAlignment = Alignment.TopCenter,
 		) {
-			Button(
-				onClick = onCompleteInfoPick,
+			Column(
+				modifier = Modifier.fillMaxWidth(0.9f),
+				horizontalAlignment = Alignment.CenterHorizontally,
+				verticalArrangement = Arrangement.Top,
 			) {
-				Text(text = "onCompleteInfoPick")
+				Spacer(modifier = Modifier.height(24.dp))
+
+				MapisodeTextField(
+					value = valueChanged,
+					onValueChange = { text ->
+						valueChanged = text
+					},
+					modifier = Modifier.aspectRatio(1.5f),
+					placeholder = "경험을 자유롭게 적어주세요.\nAI 추천을 받기 위한 내용을 입력하시면 더 정확한 추천을 받을 수 있어요.",
+				)
+
+				Spacer(modifier = Modifier.height(16.dp))
+
+				MapisodeIconButton(
+					onClick = { onSelfTypedEpisodeChange(valueChanged) },
+					modifier = Modifier
+						.width(320.dp)
+						.height(40.dp)
+						.clip(
+							RoundedCornerShape(8.dp),
+						),
+					backgroundColor = MapisodeTheme.colorScheme.filledButtonEnableBackground,
+				) {
+					Row(
+						verticalAlignment = Alignment.CenterVertically,
+						horizontalArrangement = Arrangement.spacedBy(8.dp),
+					) {
+						MapisodeText(
+							text = "직접 작성하기",
+							style = MapisodeTheme.typography.labelLarge,
+							color = MapisodeTheme.colorScheme.filledButtonContent,
+						)
+					}
+				}
+
+				Spacer(modifier = Modifier.height(16.dp))
+
+				MapisodeIconButton(
+					onClick = onGenerateLLMClick,
+					modifier = Modifier
+						.width(320.dp)
+						.height(40.dp)
+						.clip(
+							RoundedCornerShape(8.dp),
+						),
+					backgroundColor = MapisodeTheme.colorScheme.filledButtonEnableBackground,
+				) {
+					Row(
+						verticalAlignment = Alignment.CenterVertically,
+						horizontalArrangement = Arrangement.spacedBy(8.dp),
+					) {
+						Image(
+							painter = painterResource(id = R.drawable.ic_generative_ai_star),
+							contentDescription = "Generate",
+						)
+						MapisodeText(
+							text = "AI 추천받기",
+							style = MapisodeTheme.typography.labelLarge,
+							color = MapisodeTheme.colorScheme.filledButtonContent,
+						)
+					}
+				}
+
+				Spacer(modifier = Modifier.height(16.dp))
+
+				MapisodeText(
+					text = "AI 추천 내용",
+					modifier = Modifier.fillMaxWidth(),
+					style = MapisodeTheme.typography.labelLarge,
+				)
+
+				Spacer(modifier = Modifier.height(4.dp))
+
+				repeat(maxOf(3, uiState.generatedEpisodes.size)) { index ->
+					val generatedEpisode = uiState.generatedEpisodes.getOrNull(index) ?: ""
+					MapisodeOutlinedButton(
+						text = generatedEpisode,
+						onClick = {
+							if (generatedEpisode.isNotBlank()) {
+								onSelectEpisodeClick(
+									generatedEpisode,
+								)
+							}
+						},
+						borderColor = if (generatedEpisode == uiState.selectedEpisode && generatedEpisode.isNotBlank()) MapisodeTheme.colorScheme.chipSelectedStroke else MapisodeTheme.colorScheme.chipUnselectedStroke,
+						contentColor = if (generatedEpisode == uiState.selectedEpisode && generatedEpisode.isNotBlank()) MapisodeTheme.colorScheme.chipSelectedStroke else MapisodeTheme.colorScheme.chipUnselectedStroke,
+					)
+					Spacer(modifier = Modifier.height(8.dp))
+				}
+
+				Spacer(modifier = Modifier.height(8.dp))
+
+				MapisodeText(
+					text = "작성 내용",
+					modifier = Modifier.fillMaxWidth(),
+					style = MapisodeTheme.typography.labelLarge,
+				)
+
+				Spacer(modifier = Modifier.height(4.dp))
+
+				MapisodeOutlinedButton(
+					text = uiState.selfTypedEpisode,
+					onClick = {},
+					enabled = false,
+					borderColor = if (uiState.selfTypedEpisode.isNotBlank()) MapisodeTheme.colorScheme.chipSelectedStroke else MapisodeTheme.colorScheme.chipUnselectedStroke,
+					contentColor = if (uiState.selfTypedEpisode.isNotBlank()) MapisodeTheme.colorScheme.chipSelectedStroke else MapisodeTheme.colorScheme.chipUnselectedStroke,
+				)
+
+				Spacer(modifier = Modifier.height(4.dp))
+			}
+
+			Column(
+				modifier = Modifier.align(Alignment.BottomCenter),
+			) {
+				MapisodeFilledButton(
+					modifier = Modifier
+						.fillMaxWidth(0.9f)
+						.widthIn(max = 360.dp)
+						.height(52.dp),
+					onClick = {
+						onCompleteInfoPick()
+					},
+					text = if (uiState.isEpisodeSelected) "완료" else "내용을 선택해주세요",
+					enabled = uiState.isEpisodeSelected,
+					showRipple = true,
+				)
+				Spacer(modifier = Modifier.height(10.dp))
 			}
 		}
 	}

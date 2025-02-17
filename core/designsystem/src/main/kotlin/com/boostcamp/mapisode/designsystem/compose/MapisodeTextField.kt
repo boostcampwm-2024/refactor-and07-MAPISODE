@@ -41,6 +41,7 @@ import com.boostcamp.mapisode.designsystem.theme.MapisodeTheme
 fun MapisodePlaceHolder(value: String) {
 	MapisodeText(
 		text = value,
+		modifier = Modifier.fillMaxSize(),
 		style = MapisodeTheme.typography.labelLarge,
 		color = MapisodeTheme.colorScheme.textFieldContent,
 	)
@@ -156,8 +157,8 @@ fun MapisodeTextField(
 					minLines = minLines,
 					decorationBox = { innerTextField ->
 						Box(
-							modifier = Modifier.fillMaxWidth(),
-							contentAlignment = Alignment.CenterStart,
+							modifier = Modifier.fillMaxSize(),
+							contentAlignment = Alignment.TopStart,
 						) {
 							if (prefix != null) {
 								Box(modifier = Modifier.padding(end = 8.dp)) {

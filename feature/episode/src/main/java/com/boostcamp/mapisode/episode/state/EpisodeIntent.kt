@@ -22,4 +22,10 @@ sealed class EpisodeIntent : UiIntent {
 	data class SetEpisodeAddress(val latLng: LatLng) : EpisodeIntent()
 	data class SetEpisodeLocation(val latLng: LatLng) : EpisodeIntent()
 	data object OnCompleteInfoClick : EpisodeIntent()
+
+	// 내용 입력
+	data class OnUserInputChange(val userInput: String) : EpisodeIntent()
+	data object OnGenerateLLMClick : EpisodeIntent()
+	data class OnSelectEpisodeClick(val generatedEpisode: String) : EpisodeIntent()
+	data class OnSelfTypedEpisodeChange(val selfTypedEpisode: String) : EpisodeIntent()
 }

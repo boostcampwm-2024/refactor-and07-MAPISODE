@@ -357,12 +357,12 @@ fun LocationSelection(
 		) {
 			MapisodeFilledButton(
 				modifier = Modifier
-					.fillMaxWidth()
+					.fillMaxWidth().widthIn(max = 360.dp)
 					.height(52.dp),
 				onClick = {
 					onCompleteInfoClick()
 				},
-				text = if (uiState.isCameraMoving) "위치 설정중" else "선택하기",
+				text = if (uiState.isCameraMoving) "위치 설정중" else "선택",
 				enabled = uiState.isCameraMoving.not(),
 				showRipple = true,
 			)
