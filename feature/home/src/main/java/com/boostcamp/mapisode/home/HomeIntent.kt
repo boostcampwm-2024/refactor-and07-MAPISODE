@@ -28,4 +28,5 @@ sealed class HomeIntent : UiIntent {
 		val end: EpisodeLatLng,
 		val shouldSort: Boolean = false,
 	) : HomeIntent()
+	data class NavigateToAiRecommendation(val episodes: List<String>) : HomeIntent()
 }

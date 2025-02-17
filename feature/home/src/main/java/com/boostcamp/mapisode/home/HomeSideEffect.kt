@@ -11,4 +11,5 @@ sealed class HomeSideEffect : SideEffect {
 	data class NavigateToEpisode(val latLng: EpisodeLatLng) : HomeSideEffect()
 	data class NavigateToEpisodeDetail(val episodeId: String) : HomeSideEffect()
 	data class MoveCameraToPosition(val position: LatLng) : HomeSideEffect()
+	data class NavigateToAiRecommendation(val episodes: List<String>) : HomeSideEffect()
 }

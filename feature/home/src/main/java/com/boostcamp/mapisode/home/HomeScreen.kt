@@ -86,6 +86,7 @@ internal fun HomeRoute(
 	onTextMarkerClick: (EpisodeLatLng) -> Unit = {},
 	onEpisodeClick: (String) -> Unit = {},
 	onListFabClick: (String) -> Unit = {},
+	onAiRecommendationClick: (List<String>) -> Unit = {},
 ) {
 	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 	val context = LocalContext.current
@@ -212,6 +213,10 @@ internal fun HomeRoute(
 					cameraPositionState.position = CameraPosition(sideEffect.position, DEFAULT_ZOOM)
 					loadEpisodesInBounds(cameraPositionState)
 				}
+
+				is HomeSideEffect.NavigateToAiRecommendation -> {
+					onAiRecommendationClick(sideEffect.episodes)
+				}
 			}
 		}
 	}
@@ -271,6 +276,9 @@ internal fun HomeRoute(
 			viewModel.onIntent(HomeIntent.SelectGroup(groupId))
 			viewModel.onIntent(HomeIntent.ShowBottomSheet)
 		},
+		onAiRecommendationClick = { episodes ->
+			viewModel.onIntent(HomeIntent.NavigateToAiRecommendation(episodes))
+		},
 	)
 }
 
@@ -289,6 +297,7 @@ private fun HomeScreen(
 	onSwipeStart: () -> Unit = {},
 	onEpisodeClick: (String) -> Unit = {},
 	onGroupSelected: (String) -> Unit = {},
+	onAiRecommendationClick: (List<String>) -> Unit = {},
 ) {
 	val context = LocalContext.current
 	val eatIcon = remember { OverlayImage.fromResource(Design.drawable.ic_eat_marker_light) }
@@ -428,54 +437,68 @@ private fun HomeScreen(
 				}
 			}
 
-			if (state.isCardVisible) {
-				val pagerState = rememberPagerState(
-					initialPage = state.selectedEpisodeIndex,
-					initialPageOffsetFraction = 0f,
-					pageCount = { state.selectedEpisodes.size },
+			Spacer(modifier = Modifier.weight(1f))
+
+			Box(
+				modifier = Modifier.fillMaxWidth(),
+				contentAlignment = Alignment.BottomCenter,
+			) {
+				MapisodeFabOverlayButton(
+					onClick = { onAiRecommendationClick(state.episodes.map { it.id }) },
+					modifier = Modifier
+						.align(Alignment.BottomEnd)
+						.padding(end = 20.dp, bottom = 20.dp),
 				)
 
-				LaunchedEffect(pagerState.currentPage) {
-					val currentEpisode = state.selectedEpisodes.getOrNull(pagerState.currentPage)
-					currentEpisode?.let { episode ->
-						val position = LatLng(episode.location.latitude, episode.location.longitude)
-						onSwipeStart()
-						cameraPositionState.position = CameraPosition(position, DEFAULT_ZOOM)
+				if (state.isCardVisible) {
+					val pagerState = rememberPagerState(
+						initialPage = state.selectedEpisodeIndex,
+						initialPageOffsetFraction = 0f,
+						pageCount = { state.selectedEpisodes.size },
+					)
+
+					LaunchedEffect(pagerState.currentPage) {
+						val currentEpisode =
+							state.selectedEpisodes.getOrNull(pagerState.currentPage)
+						currentEpisode?.let { episode ->
+							val position =
+								LatLng(episode.location.latitude, episode.location.longitude)
+							onSwipeStart()
+							cameraPositionState.position = CameraPosition(position, DEFAULT_ZOOM)
+						}
+					}
+
+					LaunchedEffect(state.selectedEpisodes) {
+						if (pagerState.currentPage != state.selectedEpisodeIndex) {
+							pagerState.scrollToPage(state.selectedEpisodeIndex)
+						}
+					}
+
+					HorizontalPager(
+						state = pagerState,
+						modifier = Modifier
+							.fillMaxWidth()
+							.align(Alignment.BottomCenter),
+						verticalAlignment = Alignment.CenterVertically,
+						contentPadding = PaddingValues(horizontal = 20.dp),
+						pageSpacing = 10.dp,
+					) { page ->
+						val episode = state.selectedEpisodes[page]
+
+						Box(
+							modifier = Modifier.fillMaxWidth(),
+							contentAlignment = Alignment.Center,
+						) {
+							EpisodeCard(
+								episode = episode,
+								onClick = onEpisodeClick,
+							)
+						}
 					}
 				}
-
-				LaunchedEffect(state.selectedEpisodes) {
-					if (pagerState.currentPage != state.selectedEpisodeIndex) {
-						pagerState.scrollToPage(state.selectedEpisodeIndex)
-					}
-				}
-
-				Spacer(modifier = Modifier.weight(1f))
-
-				HorizontalPager(
-					state = pagerState,
-					modifier = Modifier
-						.fillMaxWidth()
-						.align(Alignment.CenterHorizontally),
-					verticalAlignment = Alignment.CenterVertically,
-					contentPadding = PaddingValues(horizontal = 20.dp),
-					pageSpacing = 10.dp,
-				) { page ->
-					val episode = state.selectedEpisodes[page]
-
-					Box(
-						modifier = Modifier.fillMaxWidth(),
-						contentAlignment = Alignment.Center,
-					) {
-						EpisodeCard(
-							episode = episode,
-							onClick = onEpisodeClick,
-						)
-					}
-				}
-
-				Spacer(modifier = Modifier.height(20.dp))
 			}
+
+			Spacer(modifier = Modifier.height(20.dp))
 		}
 
 		MapisodeModalBottomSheet(

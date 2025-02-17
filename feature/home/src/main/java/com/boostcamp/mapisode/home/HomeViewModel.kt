@@ -113,6 +113,10 @@ class HomeViewModel @Inject constructor(
 			is HomeIntent.SelectGroup -> {
 				selectGroup(intent.groupId)
 			}
+
+			is HomeIntent.NavigateToAiRecommendation -> {
+				postSideEffect(HomeSideEffect.NavigateToAiRecommendation(intent.episodes))
+			}
 		}
 	}
 
