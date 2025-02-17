@@ -10,6 +10,9 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navOptions
+import com.boostcamp.mapisode.episode.navigation.navigateToEpisodeContent
+import com.boostcamp.mapisode.episode.navigation.navigateToEpisodeInfo
+import com.boostcamp.mapisode.episode.navigation.popUpStackToMain
 import com.boostcamp.mapisode.home.navigation.navigateEpisodeDetail
 import com.boostcamp.mapisode.home.navigation.navigateEpisodeEdit
 import com.boostcamp.mapisode.home.navigation.navigateEpisodeList
@@ -49,7 +52,7 @@ internal class MainNavigator(
 
 		when (tab) {
 			MainNavTab.HOME -> navController.navigate(MainNavTab.HOME.route, navOptions)
-			MainNavTab.AIEPISODE -> navController.navigate(MainNavTab.AIEPISODE.route, navOptions)
+			MainNavTab.EPISODE -> navController.navigate(MainNavTab.EPISODE.route, navOptions)
 			MainNavTab.GROUP -> navController.navigate(MainNavTab.GROUP.route, navOptions)
 			MainNavTab.MYPAGE -> navController.navigate(MainNavTab.MYPAGE.route, navOptions)
 		}
@@ -63,6 +66,18 @@ internal class MainNavigator(
 
 	fun navigateToMain() {
 		navController.navigate(MainRoute.Home)
+	}
+
+	fun navigateToEpisodeInfo() {
+		navController.navigateToEpisodeInfo()
+	}
+
+	fun navigateToEpisodeContent() {
+		navController.navigateToEpisodeContent()
+	}
+
+	fun popUpStackToMain() {
+		navController.popUpStackToMain()
 	}
 
 	fun navigateToEpisodeDetail(episodeId: String) {
@@ -127,7 +142,7 @@ internal class MainNavigator(
 
 	@Composable
 	fun shouldShowBottomBar() = MainNavTab.contains {
-		if (it == MainRoute.AiEpisode) {
+		if (it == MainRoute.Episode) {
 			false
 		} else {
 			currentDestination?.hasRoute(it::class) == true

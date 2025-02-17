@@ -28,7 +28,7 @@ internal fun MainNavHost(
 			addHomeNavGraph(
 				navController = navigator.navController,
 				onTextMarkerClick = { _ ->
-					navigator.navigate(MainNavTab.AIEPISODE)
+					navigator.navigate(MainNavTab.EPISODE)
 				},
 				onEpisodeEditClick = navigator::navigateToEpisodeEdit,
 				onEpisodeClick = navigator::navigateToEpisodeDetail,
@@ -41,8 +41,10 @@ internal fun MainNavHost(
 				navigateToMain = navigator::navigateToMain,
 			)
 			addEpisodeNavGraph(
-				onPopBackToMain = navigator::popBackEpisodeToMain,
+				onInfoPickClick = navigator::navigateToEpisodeInfo,
+				onContentPickClick = navigator::navigateToEpisodeContent,
 				onBack = navigator::popBackStackIfNotHome,
+				onMainBack = navigator::popUpStackToMain,
 			)
 			addGroupNavGraph(
 				onBackClick = navigator::popBackStackIfNotHome,
