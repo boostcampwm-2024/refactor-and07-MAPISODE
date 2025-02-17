@@ -8,6 +8,7 @@ import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.boostcamp.mapisode.home.HomeRoute
+import com.boostcamp.mapisode.home.ai.RecommendationRoute
 import com.boostcamp.mapisode.home.detail.EpisodeDetailRoute
 import com.boostcamp.mapisode.home.edit.EpisodeEditRoute
 import com.boostcamp.mapisode.home.list.EpisodeListRoute
@@ -49,6 +50,13 @@ fun NavController.navigateStoryViewer(
 	navigate(HomeRoute.Story, navOptions)
 }
 
+fun NavController.navigateToAiRecommendation(
+	episodes: List<String>,
+	navOptions: NavOptions? = null,
+) {
+	navigate(HomeRoute.AiRecommendation(episodes), navOptions)
+}
+
 fun NavGraphBuilder.addHomeNavGraph(
 	navController: NavController,
 	onTextMarkerClick: (EpisodeLatLng) -> Unit,
@@ -57,12 +65,14 @@ fun NavGraphBuilder.addHomeNavGraph(
 	onListFabClick: (String) -> Unit,
 	onStoryClick: () -> Unit,
 	onBackClick: () -> Unit,
+	onAiRecommendationClick: (List<String>) -> Unit,
 ) {
 	composable<MainRoute.Home> {
 		HomeRoute(
 			onTextMarkerClick = onTextMarkerClick,
 			onEpisodeClick = onEpisodeClick,
 			onListFabClick = onListFabClick,
+			onAiRecommendationClick = onAiRecommendationClick,
 		)
 	}
 
@@ -93,6 +103,14 @@ fun NavGraphBuilder.addHomeNavGraph(
 
 		StoryViewerRoute(
 			viewModel = hiltViewModel(parentEntry),
+			onBackClick = onBackClick,
+		)
+	}
+
+	composable<HomeRoute.AiRecommendation> { backStackEntry ->
+		val episodes = backStackEntry.toRoute<HomeRoute.AiRecommendation>().episodes
+		RecommendationRoute(
+			episodes = episodes,
 			onBackClick = onBackClick,
 		)
 	}

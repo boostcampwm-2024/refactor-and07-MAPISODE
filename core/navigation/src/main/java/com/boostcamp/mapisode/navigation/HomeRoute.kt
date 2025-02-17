@@ -15,4 +15,7 @@ sealed interface HomeRoute : Route {
 
 	@Serializable
 	data object Story : HomeRoute
+
+	@Serializable
+	data class AiRecommendation(val episodes: kotlin.collections.List<String>) : HomeRoute
 }

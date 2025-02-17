@@ -35,6 +35,7 @@ internal fun MainNavHost(
 				onListFabClick = navigator::navigateToEpisodeList,
 				onStoryClick = navigator::navigateToStoryViewer,
 				onBackClick = navigator::popBackStackIfNotHome,
+				onAiRecommendationClick = navigator::navigateToAiRecommendation,
 			)
 			addAuthNavGraph(
 				navigateToMain = navigator::navigateToMain,
