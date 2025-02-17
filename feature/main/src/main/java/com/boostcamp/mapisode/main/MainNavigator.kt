@@ -14,6 +14,7 @@ import com.boostcamp.mapisode.home.navigation.navigateEpisodeDetail
 import com.boostcamp.mapisode.home.navigation.navigateEpisodeEdit
 import com.boostcamp.mapisode.home.navigation.navigateEpisodeList
 import com.boostcamp.mapisode.home.navigation.navigateStoryViewer
+import com.boostcamp.mapisode.home.navigation.navigateToAiRecommendation
 import com.boostcamp.mapisode.model.EpisodeLatLng
 import com.boostcamp.mapisode.mygroup.navigation.navigateGroupCreation
 import com.boostcamp.mapisode.mygroup.navigation.navigateGroupDetail
@@ -105,6 +106,10 @@ internal class MainNavigator(
 
 	fun navigateToStoryViewer() {
 		navController.navigateStoryViewer()
+	}
+
+	fun navigateToAiRecommendation(episodes: List<String>) {
+		navController.navigateToAiRecommendation(episodes)
 	}
 
 	private fun popBackStack() {
