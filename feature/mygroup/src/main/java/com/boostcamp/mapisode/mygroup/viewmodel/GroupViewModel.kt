@@ -7,16 +7,13 @@ import com.boostcamp.mapisode.mygroup.R
 import com.boostcamp.mapisode.mygroup.intent.GroupIntent
 import com.boostcamp.mapisode.mygroup.sideeffect.GroupSideEffect
 import com.boostcamp.mapisode.mygroup.state.GroupState
+import com.boostcamp.mapisode.ui.base.RevisedBaseViewModel
+import com.boostcamp.mapisode.ui.base.retainFirstIfNavigating
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.toPersistentList
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -25,14 +22,14 @@ import javax.inject.Inject
 class GroupViewModel @Inject constructor(
 	private val groupRepository: GroupRepository,
 	private val userPreferenceDataStore: UserPreferenceDataStore,
-) : GroupBaseViewModel<GroupIntent, GroupState, GroupSideEffect>(GroupState()) {
+) : RevisedBaseViewModel<GroupIntent, GroupState, GroupSideEffect>(GroupState()) {
 
-	@OptIn(FlowPreview::class)
 	override suspend fun reducer(intent: SharedFlow<GroupIntent>) {
-		intent.debounce(100)
-			.flatMapLatest { value ->
-				flowOf(value).onEach { delay(300) }
-			}
+		intent.retainFirstIfNavigating(
+			GroupIntent.OnJoinClick::class,
+			GroupIntent.OnGroupCreateClick::class,
+			GroupIntent.OnGroupDetailClick::class,
+		)
 			.collect { uiIntent ->
 				when (uiIntent) {
 					GroupIntent.LoadGroups -> {

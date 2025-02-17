@@ -11,14 +11,12 @@ import com.boostcamp.mapisode.mygroup.model.toGroupUiEpisodeModel
 import com.boostcamp.mapisode.mygroup.model.toGroupUiModel
 import com.boostcamp.mapisode.mygroup.sideeffect.GroupDetailSideEffect
 import com.boostcamp.mapisode.mygroup.state.GroupDetailState
+import com.boostcamp.mapisode.ui.base.RevisedBaseViewModel
+import com.boostcamp.mapisode.ui.base.retainFirstIfNavigating
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.toImmutableList
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.channelFlow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -28,10 +26,15 @@ class GroupDetailViewModel @Inject constructor(
 	private val groupRepository: GroupRepository,
 	private val episodeRepository: EpisodeRepository,
 	private val userPreferenceDataStore: UserPreferenceDataStore,
-) : GroupBaseViewModel<GroupDetailIntent, GroupDetailState, GroupDetailSideEffect>(GroupDetailState()) {
+) : RevisedBaseViewModel<GroupDetailIntent, GroupDetailState, GroupDetailSideEffect>(
+	GroupDetailState(),
+) {
 
 	override suspend fun reducer(intent: SharedFlow<GroupDetailIntent>) {
-		intent.retainFirstIfNavigating()
+		intent.retainFirstIfNavigating(
+			GroupDetailIntent.OnEditClick::class,
+			GroupDetailIntent.OnEpisodeClick::class,
+		)
 			.collect { uiIntent ->
 				when (uiIntent) {
 					is GroupDetailIntent.InitializeGroupDetail -> {
@@ -192,22 +195,6 @@ class GroupDetailViewModel @Inject constructor(
 				}
 			} catch (e: Exception) {
 				sendEffect { GroupDetailSideEffect.ShowToast(R.string.message_group_not_found) }
-			}
-		}
-	}
-}
-
-fun Flow<GroupDetailIntent>.retainFirstIfNavigating() = channelFlow {
-	var isFirst = true
-	collectLatest { value ->
-		if (isFirst) {
-			launch(Dispatchers.IO) {
-				isFirst = false
-				send(value)
-				if (value is GroupDetailIntent.OnEditClick || value is GroupDetailIntent.OnEpisodeClick) {
-					delay(300)
-				}
-				isFirst = true
 			}
 		}
 	}
