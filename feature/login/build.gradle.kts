@@ -9,6 +9,6 @@ android {
 dependencies {
 	implementation(projects.core.auth)
 	implementation(projects.domain.user)
-	implementation(projects.domain.mygroup)
+	implementation(projects.domain.episode)
 	implementation(libs.bundles.coil)
 }

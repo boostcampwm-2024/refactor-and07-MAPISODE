@@ -4,9 +4,9 @@ import androidx.lifecycle.viewModelScope
 import com.boostcamp.mapisode.auth.GoogleOauth
 import com.boostcamp.mapisode.auth.LoginState
 import com.boostcamp.mapisode.datastore.UserPreferenceDataStore
+import com.boostcamp.mapisode.episode.repository.GroupRepository
 import com.boostcamp.mapisode.model.GroupModel
 import com.boostcamp.mapisode.model.UserModel
-import com.boostcamp.mapisode.mygroup.GroupRepository
 import com.boostcamp.mapisode.ui.base.BaseViewModel
 import com.boostcamp.mapisode.user.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel

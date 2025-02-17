@@ -1,12 +1,8 @@
 package com.boostcamp.mapisode.episode.di
 
-import com.boostcamp.mapisode.episode.DatabaseRepository
-import com.boostcamp.mapisode.episode.EpisodeRepository
-import com.boostcamp.mapisode.episode.ImageCaptionRepository
-import com.boostcamp.mapisode.episode.LlmRepository
-import com.boostcamp.mapisode.episode.Logger
-import com.boostcamp.mapisode.episode.TranslationRepository
-import com.boostcamp.mapisode.episode.UploadNewEpisodeUseCase
+import com.boostcamp.mapisode.episode.UseCase.UploadNewEpisodeUseCase
+import com.boostcamp.mapisode.episode.repository.DatabaseRepository
+import com.boostcamp.mapisode.episode.repository.EpisodeRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -20,19 +16,11 @@ object UseCaseModule {
 	@Singleton
 	fun provideUploadUseCase(
 		episodeRepository: EpisodeRepository,
-		imageCaptionRepository: ImageCaptionRepository,
-		llmRepository: LlmRepository,
-		translationRepository: TranslationRepository,
 		databaseRepository: DatabaseRepository,
-		logger: Logger,
 	): UploadNewEpisodeUseCase {
 		return UploadNewEpisodeUseCase(
 			episodeRepository,
-			imageCaptionRepository,
-			llmRepository,
-			translationRepository,
 			databaseRepository,
-			logger,
 		)
 	}
 }

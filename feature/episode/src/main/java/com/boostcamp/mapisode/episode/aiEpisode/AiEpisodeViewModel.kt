@@ -3,10 +3,10 @@ package com.boostcamp.mapisode.episode.aiEpisode
 import androidx.lifecycle.viewModelScope
 import coil3.toUri
 import com.boostcamp.mapisode.datastore.UserPreferenceDataStore
-import com.boostcamp.mapisode.episode.UploadNewEpisodeUseCase
+import com.boostcamp.mapisode.episode.UseCase.UploadNewEpisodeUseCase
+import com.boostcamp.mapisode.episode.repository.GroupRepository
 import com.boostcamp.mapisode.model.EpisodeLatLng
 import com.boostcamp.mapisode.model.EpisodeModel
-import com.boostcamp.mapisode.mygroup.GroupRepository
 import com.boostcamp.mapisode.ui.base.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers

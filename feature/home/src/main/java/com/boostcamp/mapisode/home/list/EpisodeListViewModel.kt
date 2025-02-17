@@ -1,11 +1,11 @@
 package com.boostcamp.mapisode.home.list
 
 import androidx.lifecycle.viewModelScope
-import com.boostcamp.mapisode.episode.EpisodeRepository
+import com.boostcamp.mapisode.episode.repository.EpisodeRepository
+import com.boostcamp.mapisode.episode.repository.GroupRepository
 import com.boostcamp.mapisode.home.R
 import com.boostcamp.mapisode.home.common.SortOption
 import com.boostcamp.mapisode.model.EpisodeModel
-import com.boostcamp.mapisode.mygroup.GroupRepository
 import com.boostcamp.mapisode.ui.base.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.PersistentList

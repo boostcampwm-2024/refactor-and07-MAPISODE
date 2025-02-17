@@ -1,10 +1,10 @@
-package com.boostcamp.mapisode.episode
+package com.boostcamp.mapisode.episode.repository
 
 import com.boostcamp.mapisode.model.EpisodeLatLng
 import com.boostcamp.mapisode.model.EpisodeModel
 
 interface EpisodeRepository {
-	suspend fun getEpisodesByGroup(groupId: String): List<EpisodeModel>
+	suspend fun getEpisodesByGroup(groupId: String): List<EpisodeModel> //
 	suspend fun getEpisodesByGroupAndLocation(
 		groupId: String,
 		start: EpisodeLatLng,
@@ -12,16 +12,16 @@ interface EpisodeRepository {
 		category: String? = null,
 	): List<EpisodeModel>
 
-	suspend fun getEpisodesByGroupAndCategory(
+	suspend fun getEpisodesByGroupAndCategory( //
 		groupId: String,
 		category: String,
 	): List<EpisodeModel>
 
-	suspend fun getEpisodeById(episodeId: String): EpisodeModel?
+	suspend fun getEpisodeById(episodeId: String): EpisodeModel? //
 
-	suspend fun createEpisode(episodeModel: EpisodeModel, uploadedImageUrls: List<String>): String
+	suspend fun createEpisode(episodeModel: EpisodeModel, uploadedImageUrls: List<String>): String //
 
-	suspend fun getMostRecentEpisodeByGroup(groupId: String): EpisodeModel?
+	suspend fun getMostRecentEpisodeByGroup(groupId: String): EpisodeModel? //
 
 	suspend fun updateEpisode(episodeModel: EpisodeModel)
 	suspend fun uploadImagesToStorage(newEpisodeId: String, imageUris: List<String>): List<String>

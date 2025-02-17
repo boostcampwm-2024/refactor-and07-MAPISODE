@@ -1,7 +1,7 @@
 package com.boostcamp.mapisode.episode.di
 
-import com.boostcamp.mapisode.episode.EpisodeRepository
 import com.boostcamp.mapisode.episode.EpisodeRepositoryImpl
+import com.boostcamp.mapisode.episode.repository.EpisodeRepository
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import dagger.Module

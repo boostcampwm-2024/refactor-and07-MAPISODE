@@ -1,7 +1,7 @@
 package com.boostcamp.mapisode.home.detail
 
 import androidx.lifecycle.viewModelScope
-import com.boostcamp.mapisode.episode.EpisodeRepository
+import com.boostcamp.mapisode.episode.repository.EpisodeRepository
 import com.boostcamp.mapisode.home.R
 import com.boostcamp.mapisode.ui.base.BaseViewModel
 import com.boostcamp.mapisode.user.UserRepository
