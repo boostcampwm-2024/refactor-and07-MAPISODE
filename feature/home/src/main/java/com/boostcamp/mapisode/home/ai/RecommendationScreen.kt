@@ -54,269 +54,272 @@ import com.naver.maps.map.compose.rememberCameraPositionState
 
 @Composable
 fun RecommendationRoute(
-    viewModel: RecommendationViewmodel = hiltViewModel(),
-    episodes: List<String>,
-    onBackClick: () -> Unit,
+	viewModel: RecommendationViewmodel = hiltViewModel(),
+	episodes: List<String>,
+	onBackClick: () -> Unit,
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    LaunchedEffect(episodes) {
-        viewModel.onIntent(RecommendationIntent.Initialize(episodes))
-    }
+	LaunchedEffect(episodes) {
+		viewModel.onIntent(RecommendationIntent.Initialize(episodes))
+	}
 
-    MapisodeScaffold(
-        modifier = Modifier.fillMaxSize(),
-        isStatusBarPaddingExist = true,
-        isNavigationBarPaddingExist = true,
-        topBar = {
-            AiEpisodeTopBar(
-                title = "AI 추천",
-                onClickBack = onBackClick,
-                onClickClear = { }
-            )
-        }
-    ) {
-        if (!uiState.isOptionSelected) {
-            RecommendationChoiceScreen(
-                modifier = Modifier.fillMaxSize(),
-                onOptionClick = { optionId ->
-                    viewModel.onIntent(RecommendationIntent.OptionClick(optionId))
-                }
-            )
-        } else {
-            RecommendationResultScreen(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(it),
-                resultViewType = uiState.resultViewType,
-                episodes = listOf(
-                    ResultEpisode(
-                        id = "1",
-                        owner = "강남역",
-                        distance = "distance",
-                        reason = "reason1",
-                        thumbnail = "thumbnail",
-                        coordinates = LatLng(37.504538, 127.025319)
-                    ), ResultEpisode(
-                        id = "2",
-                        owner = "강남역",
-                        distance = "distance",
-                        reason = "reason12",
-                        thumbnail = "thumbnail",
-                        coordinates = LatLng(37.498123, 127.026378)
-                    ), ResultEpisode(
-                        id = "3",
-                        owner = "경제",
-                        distance = "distance",
-                        reason = "reason13",
-                        thumbnail = "thumbnail",
-                        coordinates = LatLng(37.500667, 127.036155)
-                    ), ResultEpisode(
-                        id = "4",
-                        owner = "코엑스",
-                        distance = "distance",
-                        reason = "reason4",
-                        thumbnail = "thumbnail",
-                        coordinates = LatLng(37.503632, 127.037445)
-                    )
-                ),
-                showMapView = { viewModel.onIntent(RecommendationIntent.ShowMapType) },
-                showListView = { viewModel.onIntent(RecommendationIntent.ShowListType) },
-                onBackClick = onBackClick
-            )
-        }
-    }
+	MapisodeScaffold(
+		modifier = Modifier.fillMaxSize(),
+		isStatusBarPaddingExist = true,
+		isNavigationBarPaddingExist = true,
+		topBar = {
+			AiEpisodeTopBar(
+				title = "AI 추천",
+				onClickBack = onBackClick,
+				onClickClear = { },
+			)
+		},
+	) {
+		if (!uiState.isOptionSelected) {
+			RecommendationChoiceScreen(
+				modifier = Modifier.fillMaxSize(),
+				onOptionClick = { optionId ->
+					viewModel.onIntent(RecommendationIntent.OptionClick(optionId))
+				},
+			)
+		} else {
+			RecommendationResultScreen(
+				modifier = Modifier
+					.fillMaxSize()
+					.padding(it),
+				resultViewType = uiState.resultViewType,
+				episodes = listOf(
+					ResultEpisode(
+						id = "1",
+						owner = "강남역",
+						distance = "distance",
+						reason = "reason1",
+						thumbnail = "thumbnail",
+						coordinates = LatLng(37.504538, 127.025319),
+					),
+					ResultEpisode(
+						id = "2",
+						owner = "강남역",
+						distance = "distance",
+						reason = "reason12",
+						thumbnail = "thumbnail",
+						coordinates = LatLng(37.498123, 127.026378),
+					),
+					ResultEpisode(
+						id = "3",
+						owner = "경제",
+						distance = "distance",
+						reason = "reason13",
+						thumbnail = "thumbnail",
+						coordinates = LatLng(37.500667, 127.036155),
+					),
+					ResultEpisode(
+						id = "4",
+						owner = "코엑스",
+						distance = "distance",
+						reason = "reason4",
+						thumbnail = "thumbnail",
+						coordinates = LatLng(37.503632, 127.037445),
+					),
+				),
+				showMapView = { viewModel.onIntent(RecommendationIntent.ShowMapType) },
+				showListView = { viewModel.onIntent(RecommendationIntent.ShowListType) },
+				onBackClick = onBackClick,
+			)
+		}
+	}
 }
 
 @Composable
 fun RecommendationChoiceScreen(
-    modifier: Modifier = Modifier,
-    onOptionClick: (OptionType) -> Unit = { }
+	modifier: Modifier = Modifier,
+	onOptionClick: (OptionType) -> Unit = { },
 ) {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        MapisodeText(
-            text = "무엇을 추천해드릴까요?",
-            style = MapisodeTheme.typography.headlineSmall
-        )
+	Column(
+		modifier = Modifier.fillMaxSize(),
+		horizontalAlignment = Alignment.CenterHorizontally,
+		verticalArrangement = Arrangement.Center,
+	) {
+		MapisodeText(
+			text = "무엇을 추천해드릴까요?",
+			style = MapisodeTheme.typography.headlineSmall,
+		)
 
-        Spacer(modifier = Modifier.height(16.dp))
+		Spacer(modifier = Modifier.height(16.dp))
 
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(NUM_OF_COLUMNS),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(20.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalArrangement = Arrangement.Center,
-            contentPadding = PaddingValues(8.dp)
-        ) {
-            items(options) { item ->
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(4.dp)
-                        .clickable(onClick = { onOptionClick(item.type) }),
-                    elevation = 4.dp,
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .padding(12.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Icon(
-                            painter = painterResource(item.icon),
-                            contentDescription = item.text,
-                            tint = MapisodeTheme.colorScheme.chipSelectedStroke,
-                            modifier = Modifier
-                                .size(80.dp)
-                                .aspectRatio(1f)
-                        )
+		LazyVerticalGrid(
+			columns = GridCells.Fixed(NUM_OF_COLUMNS),
+			modifier = Modifier
+				.fillMaxWidth()
+				.padding(20.dp),
+			verticalArrangement = Arrangement.Center,
+			horizontalArrangement = Arrangement.Center,
+			contentPadding = PaddingValues(8.dp),
+		) {
+			items(options) { item ->
+				Card(
+					modifier = Modifier
+						.fillMaxWidth()
+						.padding(4.dp)
+						.clickable(onClick = { onOptionClick(item.type) }),
+					elevation = 4.dp,
+					shape = RoundedCornerShape(8.dp),
+				) {
+					Column(
+						modifier = Modifier
+							.padding(12.dp),
+						horizontalAlignment = Alignment.CenterHorizontally,
+					) {
+						Icon(
+							painter = painterResource(item.icon),
+							contentDescription = item.text,
+							tint = MapisodeTheme.colorScheme.chipSelectedStroke,
+							modifier = Modifier
+								.size(80.dp)
+								.aspectRatio(1f),
+						)
 
-                        Spacer(modifier = Modifier.height(12.dp))
+						Spacer(modifier = Modifier.height(12.dp))
 
-                        MapisodeText(
-                            text = item.text,
-                            style = MapisodeTheme.typography.bodyLarge
-                        )
-                    }
-                }
-            }
-        }
-    }
+						MapisodeText(
+							text = item.text,
+							style = MapisodeTheme.typography.bodyLarge,
+						)
+					}
+				}
+			}
+		}
+	}
 }
 
 @OptIn(ExperimentalNaverMapApi::class)
 @Composable
 fun RecommendationResultScreen(
-    modifier: Modifier = Modifier,
-    resultViewType: ResultViewType,
-    episodes: List<ResultEpisode>,
-    showMapView: () -> Unit,
-    showListView: () -> Unit,
-    onBackClick: () -> Unit,
+	modifier: Modifier = Modifier,
+	resultViewType: ResultViewType,
+	episodes: List<ResultEpisode>,
+	showMapView: () -> Unit,
+	showListView: () -> Unit,
+	onBackClick: () -> Unit,
 ) {
-    Box(
-        modifier = modifier.fillMaxSize()
-    ) {
-        MapisodeFilledButton(
-            onClick = {
-                when (resultViewType) {
-                    ResultViewType.MAP_VIEW -> showListView()
-                    ResultViewType.LIST_VIEW -> showMapView()
-                }
-            },
-            text = if (resultViewType == ResultViewType.MAP_VIEW) "리스트 보기" else "지도 보기",
-            textStyle = MapisodeTheme.typography.labelLarge,
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(end = 20.dp, top = 4.dp)
-                .zIndex(1f),
-        )
+	Box(
+		modifier = modifier.fillMaxSize(),
+	) {
+		MapisodeFilledButton(
+			onClick = {
+				when (resultViewType) {
+					ResultViewType.MAP_VIEW -> showListView()
+					ResultViewType.LIST_VIEW -> showMapView()
+				}
+			},
+			text = if (resultViewType == ResultViewType.MAP_VIEW) "리스트 보기" else "지도 보기",
+			textStyle = MapisodeTheme.typography.labelLarge,
+			modifier = Modifier
+				.align(Alignment.TopEnd)
+				.padding(end = 20.dp, top = 4.dp)
+				.zIndex(1f),
+		)
 
-        when (resultViewType) {
-            ResultViewType.MAP_VIEW -> {
-                ResultMap(
-                    episodes = episodes,
-                    onMarkerClick = { }
-                )
-            }
+		when (resultViewType) {
+			ResultViewType.MAP_VIEW -> {
+				ResultMap(
+					episodes = episodes,
+					onMarkerClick = { },
+				)
+			}
 
-            ResultViewType.LIST_VIEW -> {
-                ResultList(
-                    episodes = episodes,
-                )
-            }
-        }
-    }
+			ResultViewType.LIST_VIEW -> {
+				ResultList(
+					episodes = episodes,
+				)
+			}
+		}
+	}
 }
 
 @OptIn(ExperimentalNaverMapApi::class)
 @Composable
 fun ResultMap(
-    episodes: List<ResultEpisode>,
-    onMarkerClick: (ResultEpisode) -> Unit,
+	episodes: List<ResultEpisode>,
+	onMarkerClick: (ResultEpisode) -> Unit,
 ) {
-    Box(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        val cameraPositionState = rememberCameraPositionState()
+	Box(
+		modifier = Modifier.fillMaxSize(),
+	) {
+		val cameraPositionState = rememberCameraPositionState()
 
-        val bounds = rememberSaveable {
-            LatLngBounds.Builder().apply {
-                episodes.forEach { include(it.coordinates) }
-            }.build()
-        }
+		val bounds = rememberSaveable {
+			LatLngBounds.Builder().apply {
+				episodes.forEach { include(it.coordinates) }
+			}.build()
+		}
 
-        NaverMap(
-            cameraPositionState = cameraPositionState,
-            uiSettings = MapUiSettings(
-                isZoomControlEnabled = false,
-                isLocationButtonEnabled = true,
-                isLogoClickEnabled = false,
-                isScaleBarEnabled = false,
-                isCompassEnabled = false,
-            ),
-            onMapLoaded = {
-                val padding = 100
-                cameraPositionState.move(
-                    CameraUpdate.fitBounds(
-                        bounds,
-                        padding
-                    )
-                )
-            }
-        ) {
-            episodes.forEach { episode ->
-                Marker(
-                    state = MarkerState(episode.coordinates),
-                    onClick = {
-                        onMarkerClick(episode)
-                        true
-                    }
-                )
-            }
-        }
-    }
+		NaverMap(
+			cameraPositionState = cameraPositionState,
+			uiSettings = MapUiSettings(
+				isZoomControlEnabled = false,
+				isLocationButtonEnabled = true,
+				isLogoClickEnabled = false,
+				isScaleBarEnabled = false,
+				isCompassEnabled = false,
+			),
+			onMapLoaded = {
+				val padding = 100
+				cameraPositionState.move(
+					CameraUpdate.fitBounds(
+						bounds,
+						padding,
+					),
+				)
+			},
+		) {
+			episodes.forEach { episode ->
+				Marker(
+					state = MarkerState(episode.coordinates),
+					onClick = {
+						onMarkerClick(episode)
+						true
+					},
+				)
+			}
+		}
+	}
 }
 
 @Composable
 fun ResultList(
-    episodes: List<ResultEpisode>,
+	episodes: List<ResultEpisode>,
 ) {
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(top = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-        contentPadding = PaddingValues(vertical = 10.dp, horizontal = 20.dp),
-    ) {
-        item {
-            Row(
-                modifier = Modifier.fillParentMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                MapisodeText(
-                    text = "에피소드",
-                    style = MapisodeTheme.typography.labelLarge,
-                )
-            }
-        }
-        items(
-            items = episodes,
-            key = { episode -> episode.id },
-        ) { episode ->
-            EpisodeListCard(
-                imageUrl = episode.thumbnail,
-                title = "",
-                createdBy = episode.owner,
-                content = episode.reason,
-            )
-        }
-    }
+	LazyColumn(
+		modifier = Modifier
+			.fillMaxSize()
+			.padding(top = 8.dp),
+		verticalArrangement = Arrangement.spacedBy(10.dp),
+		contentPadding = PaddingValues(vertical = 10.dp, horizontal = 20.dp),
+	) {
+		item {
+			Row(
+				modifier = Modifier.fillParentMaxWidth(),
+				verticalAlignment = Alignment.CenterVertically,
+				horizontalArrangement = Arrangement.SpaceBetween,
+			) {
+				MapisodeText(
+					text = "에피소드",
+					style = MapisodeTheme.typography.labelLarge,
+				)
+			}
+		}
+		items(
+			items = episodes,
+			key = { episode -> episode.id },
+		) { episode ->
+			EpisodeListCard(
+				imageUrl = episode.thumbnail,
+				title = "",
+				createdBy = episode.owner,
+				content = episode.reason,
+			)
+		}
+	}
 }
