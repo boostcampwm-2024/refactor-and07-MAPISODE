@@ -50,7 +50,6 @@ import com.naver.maps.map.compose.Marker
 import com.naver.maps.map.compose.MarkerState
 import com.naver.maps.map.compose.NaverMap
 import com.naver.maps.map.compose.rememberCameraPositionState
-import timber.log.Timber
 
 @Composable
 fun RecommendationRoute(
@@ -195,13 +194,11 @@ fun RecommendationResultScreen(
     showListView: () -> Unit,
     onBackClick: () -> Unit,
 ) {
-
     Box(
         modifier = modifier.fillMaxSize()
     ) {
         MapisodeFilledButton(
             onClick = {
-                Timber.e("ResultViewType: $resultViewType")
                 when (resultViewType) {
                     ResultViewType.MAP_VIEW -> showListView()
                     ResultViewType.LIST_VIEW -> showMapView()
@@ -241,7 +238,6 @@ fun ResultMap(
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
-
         val cameraPositionState = rememberCameraPositionState()
 
         val bounds = rememberSaveable {
@@ -317,10 +313,4 @@ fun ResultList(
             )
         }
     }
-}
-
-
-@Composable
-fun EpisodeCard() {
-
 }
