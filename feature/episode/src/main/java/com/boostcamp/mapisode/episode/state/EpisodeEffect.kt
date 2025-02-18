@@ -14,4 +14,7 @@ sealed class EpisodeEffect : SideEffect {
 
 	// 그룹 선택
 	data object NavigateToContentScreen : EpisodeEffect()
+
+	// 내용 입력
+	data object NavigateBackToHomeScreen : EpisodeEffect()
 }

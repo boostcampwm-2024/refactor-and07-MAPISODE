@@ -28,4 +28,5 @@ sealed class EpisodeIntent : UiIntent {
 	data object OnGenerateLLMClick : EpisodeIntent()
 	data class OnSelectEpisodeClick(val generatedEpisode: String) : EpisodeIntent()
 	data class OnSelfTypedEpisodeChange(val selfTypedEpisode: String) : EpisodeIntent()
+	data object OnCompleteInfoPick : EpisodeIntent()
 }
