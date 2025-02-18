@@ -95,9 +95,16 @@ class EpisodeViewModel @Inject constructor(
 							copy(
 								selectedEpisode = "",
 								selfTypedEpisode = event.selfTypedEpisode,
-								isEpisodeSelected = currentState.selfTypedEpisode.isNotBlank(),
+								isEpisodeSelected = event.selfTypedEpisode.isNotBlank(),
 							)
 						}
+					}
+
+					EpisodeIntent.OnCompleteInfoPick -> {
+						sendState { copy(isLoading = true) }
+						delay(2000L)
+						sendEffect { EpisodeEffect.ShowToast("에피소드가 업로드 되었습니다.") }
+						sendEffect { EpisodeEffect.NavigateBackToHomeScreen }
 					}
 				}
 			}
@@ -174,11 +181,12 @@ class EpisodeViewModel @Inject constructor(
 	}
 
 	private fun dealWithLLM() {
-		viewModelScope.launch(Dispatchers.IO) {
+		viewModelScope.launch {
 			sendState {
 				copy(
 					selectedEpisode = "",
 					isLoading = true,
+					isEpisodeSelected = false,
 				)
 			}
 			if (currentState.imageCaption.isNotBlank()) {
