@@ -39,4 +39,27 @@ object HomeConstant {
 	const val MOCK_IMAGE_URL =
 		"https://github.com/user-attachments/assets/411506ef-5fbf-4c6b-b68d-d00343a0b50e"
 	const val MAX_NUM_OF_PHOTOS = 4
+	const val NUM_OF_COLUMNS = 2
+	val options = persistentListOf(
+		AiOption(
+			image = "https://avatars.githubusercontent.com/u/127717111?v=4",
+			text = "Option 1",
+			prompt = "Prompt 1"
+		),
+		AiOption(
+			image = "https://avatars.githubusercontent.com/u/127717111?v=4",
+			text = "Option 2",
+			prompt = "Prompt 2"
+		),
+		AiOption(
+			image = "https://avatars.githubusercontent.com/u/127717111?v=4",
+			text = "Option 3",
+			prompt = "Prompt 3"
+		),
+		AiOption(
+			image = "https://avatars.githubusercontent.com/u/127717111?v=4",
+			text = "Option 4",
+			prompt = "Prompt 4"
+		),
+	)
 }
