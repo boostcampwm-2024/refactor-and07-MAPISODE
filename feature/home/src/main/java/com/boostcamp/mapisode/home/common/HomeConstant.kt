@@ -1,5 +1,6 @@
 package com.boostcamp.mapisode.home.common
 
+import com.boostcamp.mapisode.designsystem.R
 import com.boostcamp.mapisode.model.GroupModel
 import kotlinx.collections.immutable.persistentListOf
 import java.util.Date
@@ -42,24 +43,40 @@ object HomeConstant {
 	const val NUM_OF_COLUMNS = 2
 	val options = persistentListOf(
 		AiOption(
-			image = "https://avatars.githubusercontent.com/u/127717111?v=4",
-			text = "Option 1",
-			prompt = "Prompt 1"
+			type = OptionType.RESTAURANT,
+			icon = R.drawable.ic_restaurant,
+			text = "식당!",
+			prompt = "Prompt 1",
 		),
 		AiOption(
-			image = "https://avatars.githubusercontent.com/u/127717111?v=4",
-			text = "Option 2",
+			type = OptionType.CAFE,
+			icon = R.drawable.ic_cafe,
+			text = "카페!",
 			prompt = "Prompt 2"
 		),
 		AiOption(
-			image = "https://avatars.githubusercontent.com/u/127717111?v=4",
-			text = "Option 3",
+			type = OptionType.CALM,
+			icon = R.drawable.ic_calm,
+			text = "차분한",
 			prompt = "Prompt 3"
 		),
 		AiOption(
-			image = "https://avatars.githubusercontent.com/u/127717111?v=4",
-			text = "Option 4",
+			type = OptionType.MEETING,
+			icon = R.drawable.ic_meeting,
+			text = "모임하기 좋은",
 			prompt = "Prompt 4"
 		),
+		AiOption(
+			type = OptionType.WITH_PET,
+			icon = R.drawable.ic_pet,
+			text = "애완동물과",
+			prompt = "Prompt 5"
+		),
+		AiOption(
+			type = OptionType.WALKING,
+			icon = R.drawable.ic_walk,
+			text = "산책하기 좋은",
+			prompt = "Prompt 6"
+		)
 	)
 }
