@@ -1,6 +1,5 @@
 package com.boostcamp.mapisode.home.ai
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,6 +20,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
+import androidx.compose.material.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -45,6 +45,7 @@ import com.naver.maps.geometry.LatLng
 import com.naver.maps.geometry.LatLngBounds
 import com.naver.maps.map.CameraUpdate
 import com.naver.maps.map.compose.ExperimentalNaverMapApi
+import com.naver.maps.map.compose.MapUiSettings
 import com.naver.maps.map.compose.Marker
 import com.naver.maps.map.compose.MarkerState
 import com.naver.maps.map.compose.NaverMap
@@ -164,9 +165,10 @@ fun RecommendationChoiceScreen(
                             .padding(12.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Image(
+                        Icon(
                             painter = painterResource(item.icon),
                             contentDescription = item.text,
+                            tint = MapisodeTheme.colorScheme.chipSelectedStroke,
                             modifier = Modifier
                                 .size(80.dp)
                                 .aspectRatio(1f)
@@ -252,6 +254,13 @@ fun ResultMap(
 
         NaverMap(
             cameraPositionState = cameraPositionState,
+            uiSettings = MapUiSettings(
+                isZoomControlEnabled = false,
+                isLocationButtonEnabled = true,
+                isLogoClickEnabled = false,
+                isScaleBarEnabled = false,
+                isCompassEnabled = false,
+            ),
             onMapLoaded = {
                 val padding = 100
                 cameraPositionState.move(
