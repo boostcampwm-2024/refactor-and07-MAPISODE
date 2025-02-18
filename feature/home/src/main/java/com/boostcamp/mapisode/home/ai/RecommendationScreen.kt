@@ -59,13 +59,11 @@ fun RecommendationRoute(
     onBackClick: () -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-
     MapisodeScaffold(
         modifier = Modifier.fillMaxSize(),
         isStatusBarPaddingExist = true,
         isNavigationBarPaddingExist = true,
         topBar = {
-            //  구분 해야...
             AiEpisodeTopBar(
                 title = "AI 추천",
                 onClickBack = onBackClick,

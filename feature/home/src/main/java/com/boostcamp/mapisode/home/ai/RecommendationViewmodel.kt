@@ -4,12 +4,10 @@ import com.boostcamp.mapisode.home.common.OptionType
 import com.boostcamp.mapisode.home.common.ResultViewType
 import com.boostcamp.mapisode.ui.base.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
-import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
 class RecommendationViewmodel @Inject constructor(
-
 ) : BaseViewModel<RecommendationIntent, RecommendationState, RecommendationSideEffect>(
 	RecommendationState(),
 ) {
@@ -31,7 +29,6 @@ class RecommendationViewmodel @Inject constructor(
 	}
 
 	private fun showListType() {
-		Timber.e("ResultViewType.LIST_VIEW")
 		intent {
 			copy(
                 resultViewType = ResultViewType.LIST_VIEW,
@@ -40,8 +37,6 @@ class RecommendationViewmodel @Inject constructor(
 	}
 
 	private fun showMapType() {
-
-		Timber.e("ResultViewType.MAP_VIEW")
 		intent {
 			copy(
                 resultViewType = ResultViewType.MAP_VIEW,
