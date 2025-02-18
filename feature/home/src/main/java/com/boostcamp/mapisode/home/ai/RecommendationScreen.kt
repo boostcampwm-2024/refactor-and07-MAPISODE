@@ -20,8 +20,9 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
-import androidx.compose.material.Icon
+import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -58,6 +59,11 @@ fun RecommendationRoute(
     onBackClick: () -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(episodes) {
+        viewModel.onIntent(RecommendationIntent.Initialize(episodes))
+    }
+
     MapisodeScaffold(
         modifier = Modifier.fillMaxSize(),
         isStatusBarPaddingExist = true,

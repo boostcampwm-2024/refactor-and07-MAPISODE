@@ -9,5 +9,6 @@ data class RecommendationState (
 	val type: OptionType = OptionType.NONE,
 	val isOptionSelected: Boolean = false,
 	val resultViewType: ResultViewType = ResultViewType.LIST_VIEW,
+	val entireEpisodes: List<ResultEpisode> = emptyList(),
 	val resultEpisodes: List<ResultEpisode> = emptyList(),
 ) : UiState
