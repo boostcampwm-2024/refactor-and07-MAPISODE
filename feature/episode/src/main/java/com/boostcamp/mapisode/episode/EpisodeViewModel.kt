@@ -43,106 +43,110 @@ class EpisodeViewModel @Inject constructor(
 	)
 
 	override suspend fun reducer(intent: SharedFlow<EpisodeIntent>) {
-		intent.retainFirstIfNavigating()
-			.collect { event ->
-				when (event) {
-					EpisodeIntent.OnBackClick -> {
-						navigateToBack()
-					}
+		intent.retainFirstIfNavigating(
+			EpisodeIntent.OnBackClick::class,
+			EpisodeIntent.OnCompletePhotoPicker::class,
+			EpisodeIntent.OnCompleteInfoClick::class,
+			EpisodeIntent.OnCompleteInfoPick::class,
+		).collect { event ->
+			when (event) {
+				EpisodeIntent.OnBackClick -> {
+					navigateToBack()
+				}
 
-					is EpisodeIntent.OnCompletePhotoPicker -> {
-						completePhotoPicker(event.imageUrls)
-					}
+				is EpisodeIntent.OnCompletePhotoPicker -> {
+					completePhotoPicker(event.imageUrls)
+				}
 
-					EpisodeIntent.OnLoadMyGroups -> {
-						loadMyGroups()
-					}
+				EpisodeIntent.OnLoadMyGroups -> {
+					loadMyGroups()
+				}
 
-					is EpisodeIntent.OnGroupClick -> {
-						sendState { copy(selectedGroups = event.groups.toPersistentList()) }
-					}
+				is EpisodeIntent.OnGroupClick -> {
+					sendState { copy(selectedGroups = event.groups.toPersistentList()) }
+				}
 
-					is EpisodeIntent.SetIsCameraMoving -> {
-						setIsCameraMoving(event.isCameraMoving)
-					}
+				is EpisodeIntent.SetIsCameraMoving -> {
+					setIsCameraMoving(event.isCameraMoving)
+				}
 
-					is EpisodeIntent.SetEpisodeAddress -> {
-						getAddress(event.latLng)
-					}
+				is EpisodeIntent.SetEpisodeAddress -> {
+					getAddress(event.latLng)
+				}
 
-					is EpisodeIntent.SetEpisodeLocation -> {
-						getLocation(event.latLng)
-					}
+				is EpisodeIntent.SetEpisodeLocation -> {
+					getLocation(event.latLng)
+				}
 
-					EpisodeIntent.OnCompleteInfoClick -> {
-						navigateToInfoScreen()
-					}
+				EpisodeIntent.OnCompleteInfoClick -> {
+					navigateToInfoScreen()
+				}
 
-					is EpisodeIntent.OnUserInputChange -> {
-						sendState { copy(userInput = event.userInput) }
-					}
+				is EpisodeIntent.OnUserInputChange -> {
+					sendState { copy(userInput = event.userInput) }
+				}
 
-					EpisodeIntent.OnGenerateLLMClick -> {
-						dealWithLLM()
-					}
+				EpisodeIntent.OnGenerateLLMClick -> {
+					dealWithLLM()
+				}
 
-					is EpisodeIntent.OnSelectEpisodeClick -> {
-						sendState {
-							copy(
-								selectedEpisode = event.generatedEpisode,
-								selfTypedEpisode = "",
-								isEpisodeSelected = true,
-							)
-						}
+				is EpisodeIntent.OnSelectEpisodeClick -> {
+					sendState {
+						copy(
+							selectedEpisode = event.generatedEpisode,
+							selfTypedEpisode = "",
+							isEpisodeSelected = true,
+						)
 					}
+				}
 
-					is EpisodeIntent.OnSelfTypedEpisodeChange -> {
-						sendState {
-							copy(
-								selectedEpisode = "",
-								selfTypedEpisode = event.selfTypedEpisode,
-								isEpisodeSelected = event.selfTypedEpisode.isNotBlank(),
-							)
-						}
+				is EpisodeIntent.OnSelfTypedEpisodeChange -> {
+					sendState {
+						copy(
+							selectedEpisode = "",
+							selfTypedEpisode = event.selfTypedEpisode,
+							isEpisodeSelected = event.selfTypedEpisode.isNotBlank(),
+						)
 					}
+				}
 
-					EpisodeIntent.OnCompleteInfoPick -> {
-						sendState { copy(isLoading = true) }
-						val episodeId = UuidGenerator.generate()
-						viewModelScope.launch {
-							currentState.selectedGroups.forEach { groupModel ->
-								val userPreference =
-									userPreferenceDataStore.getUserPreferencesFlow().firstOrNull()
-								userPreference?.let {
-									uploadNewEpisodeUseCase.invoke(
-										EpisodeModel(
-											id = episodeId,
-											category = "see",
-											content = currentState.userInput,
-											createdBy = it.userId ?: "",
-											createdByName = it.username ?: "",
-											group = groupModel.id,
-											imageUrls = currentState.imageUrls,
-											imageUrlsUsedForOnlyUpdate = emptyList(),
-											address = currentState.episodeAddress,
-											location = EpisodeLatLng(
-												latitude = currentState.cameraPosition.target.latitude,
-												longitude = currentState.cameraPosition.target.longitude,
-											),
-											memoryDate = Date(),
-											tags = emptyList(),
-											title = currentState.selectedEpisode,
-											createdAt = Date(),
+				EpisodeIntent.OnCompleteInfoPick -> {
+					sendState { copy(isLoading = true) }
+					val episodeId = UuidGenerator.generate()
+					viewModelScope.launch {
+						currentState.selectedGroups.forEach { groupModel ->
+							val userPreference =
+								userPreferenceDataStore.getUserPreferencesFlow().firstOrNull()
+							userPreference?.let {
+								uploadNewEpisodeUseCase.invoke(
+									EpisodeModel(
+										id = episodeId,
+										category = "see",
+										content = currentState.userInput,
+										createdBy = it.userId ?: "",
+										createdByName = it.username ?: "",
+										group = groupModel.id,
+										imageUrls = currentState.imageUrls,
+										imageUrlsUsedForOnlyUpdate = emptyList(),
+										address = currentState.episodeAddress,
+										location = EpisodeLatLng(
+											latitude = currentState.cameraPosition.target.latitude,
+											longitude = currentState.cameraPosition.target.longitude,
 										),
-									)
-								}
+										memoryDate = Date(),
+										tags = emptyList(),
+										title = currentState.selectedEpisode,
+										createdAt = Date(),
+									),
+								)
 							}
-							sendState { copy(isLoading = false) }
-							sendEffect { EpisodeEffect.NavigateBackToHomeScreen }
 						}
+						sendState { copy(isLoading = false) }
+						sendEffect { EpisodeEffect.NavigateBackToHomeScreen }
 					}
 				}
 			}
+		}
 	}
 
 	private fun navigateToBack() {
