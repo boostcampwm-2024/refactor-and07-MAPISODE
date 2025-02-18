@@ -31,11 +31,11 @@ import com.boostcamp.mapisode.home.R as S
 @Composable
 fun EpisodeListCard(
 	imageUrl: String,
-	title: String,
-	createdBy: String,
-	address: String,
-	createdAt: Date,
-	content: String,
+	title: String = "",
+	createdBy: String = "",
+	address: String = "",
+	createdAt: Date = Date(),
+	content: String = "",
 ) {
 	Row(
 		modifier = Modifier
