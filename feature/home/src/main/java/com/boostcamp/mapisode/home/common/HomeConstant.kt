@@ -52,31 +52,31 @@ object HomeConstant {
 			type = OptionType.CAFE,
 			icon = R.drawable.ic_cafe,
 			text = "카페!",
-			prompt = "Prompt 2"
+			prompt = "Prompt 2",
 		),
 		AiOption(
 			type = OptionType.CALM,
 			icon = R.drawable.ic_calm,
 			text = "차분한",
-			prompt = "Prompt 3"
+			prompt = "Prompt 3",
 		),
 		AiOption(
 			type = OptionType.MEETING,
 			icon = R.drawable.ic_meeting,
 			text = "모임하기 좋은",
-			prompt = "Prompt 4"
+			prompt = "Prompt 4",
 		),
 		AiOption(
 			type = OptionType.WITH_PET,
 			icon = R.drawable.ic_pet,
 			text = "애완동물과",
-			prompt = "Prompt 5"
+			prompt = "Prompt 5",
 		),
 		AiOption(
 			type = OptionType.WALKING,
 			icon = R.drawable.ic_walk,
 			text = "산책하기 좋은",
-			prompt = "Prompt 6"
-		)
+			prompt = "Prompt 6",
+		),
 	)
 }

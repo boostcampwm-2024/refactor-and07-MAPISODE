@@ -29,7 +29,7 @@ class RecommendationViewmodel @Inject constructor(
 	}
 
 	private fun initialize(episodes: List<String>) {
-		viewModelScope.launch(Dispatchers.IO){
+		viewModelScope.launch(Dispatchers.IO) {
 			val episodeDetail = episodes.map {
 				episodeRepository.getEpisodeById(it) ?: EpisodeModel()
 			}
@@ -52,25 +52,25 @@ class RecommendationViewmodel @Inject constructor(
 	private fun handleOptionClick(type: OptionType) {
 		intent {
 			copy(
-                type = type,
-                isOptionSelected = true,
-            )
+				type = type,
+				isOptionSelected = true,
+			)
 		}
 	}
 
 	private fun showListType() {
 		intent {
 			copy(
-                resultViewType = ResultViewType.LIST_VIEW,
-            )
+				resultViewType = ResultViewType.LIST_VIEW,
+			)
 		}
 	}
 
 	private fun showMapType() {
 		intent {
 			copy(
-                resultViewType = ResultViewType.MAP_VIEW,
-            )
+				resultViewType = ResultViewType.MAP_VIEW,
+			)
 		}
 	}
 }

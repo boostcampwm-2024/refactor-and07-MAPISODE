@@ -8,5 +8,5 @@ data class ResultEpisode(
 	val distance: String = "",
 	val reason: String = "",
 	val thumbnail: String,
-	val coordinates: LatLng
+	val coordinates: LatLng,
 )

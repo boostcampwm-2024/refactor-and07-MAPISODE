@@ -5,7 +5,7 @@ import com.boostcamp.mapisode.home.common.ResultEpisode
 import com.boostcamp.mapisode.home.common.ResultViewType
 import com.boostcamp.mapisode.ui.base.UiState
 
-data class RecommendationState (
+data class RecommendationState(
 	val type: OptionType = OptionType.NONE,
 	val isOptionSelected: Boolean = false,
 	val resultViewType: ResultViewType = ResultViewType.LIST_VIEW,
