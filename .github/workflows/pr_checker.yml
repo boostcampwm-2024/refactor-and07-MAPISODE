@@ -37,6 +37,7 @@ jobs:
                 env:
                     NAVER_MAP_CLIENT_ID: ${{ secrets.NAVER_MAP_CLIENT_ID }}
                     NAVER_MAP_CLIENT_SECRET: ${{ secrets.NAVER_MAP_CLIENT_SECRET }}
+                    GOOGLE_GENERATIVE_AI: ${{ secrets.GOOGLE_GENERATIVE_AI }}
                     GOOGLE_WEB_CLIENT_ID: ${{ secrets.GOOGLE_WEB_CLIENT_ID }}
                     PRIVACY_POLICY: ${{ secrets.PRIVACY_POLICY }}
                     AZURE_SUBSCRIPTION_KEY: ${{ secrets.AZURE_SUBSCRIPTION_KEY }}
@@ -44,6 +45,7 @@ jobs:
                 run: |
                     echo NAVER_MAP_CLIENT_ID=$NAVER_MAP_CLIENT_ID > ./local.properties
                     echo NAVER_MAP_CLIENT_SECRET=$NAVER_MAP_CLIENT_SECRET >> ./local.properties
+                    echo GOOGLE_GENERATIVE_AI=$GOOGLE_GENERATIVE_AI >> ./local.properties
                     echo GOOGLE_WEB_CLIENT_ID=$GOOGLE_WEB_CLIENT_ID >> ./local.properties
                     echo PRIVACY_POLICY=$PRIVACY_POLICY >> ./local.properties
                     echo AZURE_SUBSCRIPTION_KEY=$AZURE_SUBSCRIPTION_KEY >> ./local.properties
