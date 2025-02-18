@@ -1,5 +1,6 @@
 package com.boostcamp.mapisode.home.ai
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,20 +22,24 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
-import coil3.compose.AsyncImage
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.boostcamp.mapisode.designsystem.compose.MapisodeScaffold
 import com.boostcamp.mapisode.designsystem.compose.MapisodeText
 import com.boostcamp.mapisode.designsystem.compose.button.MapisodeFilledButton
 import com.boostcamp.mapisode.designsystem.theme.MapisodeTheme
 import com.boostcamp.mapisode.home.common.HomeConstant.NUM_OF_COLUMNS
 import com.boostcamp.mapisode.home.common.HomeConstant.options
+import com.boostcamp.mapisode.home.common.OptionType
 import com.boostcamp.mapisode.home.common.ResultEpisode
-import com.boostcamp.mapisode.home.common.ResultType
+import com.boostcamp.mapisode.home.common.ResultViewType
 import com.boostcamp.mapisode.home.component.EpisodeListCard
 import com.naver.maps.geometry.LatLng
 import com.naver.maps.geometry.LatLngBounds
@@ -44,13 +49,16 @@ import com.naver.maps.map.compose.Marker
 import com.naver.maps.map.compose.MarkerState
 import com.naver.maps.map.compose.NaverMap
 import com.naver.maps.map.compose.rememberCameraPositionState
+import timber.log.Timber
 
 @Composable
 fun RecommendationRoute(
-    viewmodel: RecommendationViewmodel = hiltViewModel(),
+    viewModel: RecommendationViewmodel = hiltViewModel(),
     episodes: List<String>,
     onBackClick: () -> Unit,
 ) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
     MapisodeScaffold(
         modifier = Modifier.fillMaxSize(),
         isStatusBarPaddingExist = true,
@@ -64,54 +72,62 @@ fun RecommendationRoute(
             )
         }
     ) {
-        RecommendationResultScreen(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(it),
-            resultType = ResultType.LIST_VIEW,
-            episodes = listOf(
-                ResultEpisode(
-                    id = "1",
-                    owner = "강남역",
-                    distance = "distance",
-                    reason = "reason1",
-                    thumbnail = "thumbnail",
-                    coordinates = LatLng(37.504538, 127.025319)
-                ), ResultEpisode(
-                    id = "2",
-                    owner = "강남역",
-                    distance = "distance",
-                    reason = "reason12",
-                    thumbnail = "thumbnail",
-                    coordinates = LatLng(37.498123, 127.026378)
-                ), ResultEpisode(
-                    id = "3",
-                    owner = "경제",
-                    distance = "distance",
-                    reason = "reason13",
-                    thumbnail = "thumbnail",
-                    coordinates = LatLng(37.500667, 127.036155)
-                ), ResultEpisode(
-                    id = "4",
-                    owner = "코엑스",
-                    distance = "distance",
-                    reason = "reason4",
-                    thumbnail = "thumbnail",
-                    coordinates = LatLng(37.503632, 127.037445)
-                )
-            ),
-            showMapView = { },
-            showListView = { },
-            onBackClick = onBackClick
-        )
-
+        if (!uiState.isOptionSelected) {
+            RecommendationChoiceScreen(
+                modifier = Modifier.fillMaxSize(),
+                onOptionClick = { optionId ->
+                    viewModel.onIntent(RecommendationIntent.OptionClick(optionId))
+                }
+            )
+        } else {
+            RecommendationResultScreen(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(it),
+                resultViewType = uiState.resultViewType,
+                episodes = listOf(
+                    ResultEpisode(
+                        id = "1",
+                        owner = "강남역",
+                        distance = "distance",
+                        reason = "reason1",
+                        thumbnail = "thumbnail",
+                        coordinates = LatLng(37.504538, 127.025319)
+                    ), ResultEpisode(
+                        id = "2",
+                        owner = "강남역",
+                        distance = "distance",
+                        reason = "reason12",
+                        thumbnail = "thumbnail",
+                        coordinates = LatLng(37.498123, 127.026378)
+                    ), ResultEpisode(
+                        id = "3",
+                        owner = "경제",
+                        distance = "distance",
+                        reason = "reason13",
+                        thumbnail = "thumbnail",
+                        coordinates = LatLng(37.500667, 127.036155)
+                    ), ResultEpisode(
+                        id = "4",
+                        owner = "코엑스",
+                        distance = "distance",
+                        reason = "reason4",
+                        thumbnail = "thumbnail",
+                        coordinates = LatLng(37.503632, 127.037445)
+                    )
+                ),
+                showMapView = { viewModel.onIntent(RecommendationIntent.ShowMapType) },
+                showListView = { viewModel.onIntent(RecommendationIntent.ShowListType) },
+                onBackClick = onBackClick
+            )
+        }
     }
 }
 
 @Composable
 fun RecommendationChoiceScreen(
     modifier: Modifier = Modifier,
-    onOptionClick: (String) -> Unit = { }
+    onOptionClick: (OptionType) -> Unit = { }
 ) {
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -139,7 +155,7 @@ fun RecommendationChoiceScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(4.dp)
-                        .clickable(onClick = { onOptionClick(item.prompt) }),
+                        .clickable(onClick = { onOptionClick(item.type) }),
                     elevation = 4.dp,
                     shape = RoundedCornerShape(8.dp)
                 ) {
@@ -148,18 +164,19 @@ fun RecommendationChoiceScreen(
                             .padding(12.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        AsyncImage(
-                            model = item.image,
-                            contentDescription = null,
+                        Image(
+                            painter = painterResource(item.icon),
+                            contentDescription = item.text,
                             modifier = Modifier
-                                .size(100.dp)
+                                .size(80.dp)
                                 .aspectRatio(1f)
                         )
 
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(12.dp))
 
                         MapisodeText(
                             text = item.text,
+                            style = MapisodeTheme.typography.bodyLarge
                         )
                     }
                 }
@@ -172,7 +189,7 @@ fun RecommendationChoiceScreen(
 @Composable
 fun RecommendationResultScreen(
     modifier: Modifier = Modifier,
-    resultType: ResultType,
+    resultViewType: ResultViewType,
     episodes: List<ResultEpisode>,
     showMapView: () -> Unit,
     showListView: () -> Unit,
@@ -184,27 +201,29 @@ fun RecommendationResultScreen(
     ) {
         MapisodeFilledButton(
             onClick = {
-                when (resultType) {
-                    ResultType.MAP_VIEW -> showListView()
-                    ResultType.LIST_VIEW -> showMapView()
+                Timber.e("ResultViewType: $resultViewType")
+                when (resultViewType) {
+                    ResultViewType.MAP_VIEW -> showListView()
+                    ResultViewType.LIST_VIEW -> showMapView()
                 }
             },
-            text = if (resultType == ResultType.MAP_VIEW) "리스트 보기" else "지도 보기",
+            text = if (resultViewType == ResultViewType.MAP_VIEW) "리스트 보기" else "지도 보기",
             textStyle = MapisodeTheme.typography.labelLarge,
             modifier = Modifier
                 .align(Alignment.TopEnd)
-                .padding(end = 20.dp, top = 4.dp),
+                .padding(end = 20.dp, top = 4.dp)
+                .zIndex(1f),
         )
 
-        when (resultType) {
-            ResultType.MAP_VIEW -> {
+        when (resultViewType) {
+            ResultViewType.MAP_VIEW -> {
                 ResultMap(
                     episodes = episodes,
                     onMarkerClick = { }
                 )
             }
 
-            ResultType.LIST_VIEW -> {
+            ResultViewType.LIST_VIEW -> {
                 ResultList(
                     episodes = episodes,
                 )
