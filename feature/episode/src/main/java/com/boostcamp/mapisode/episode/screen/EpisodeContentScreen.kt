@@ -30,7 +30,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -77,12 +77,8 @@ fun EpisodeContentRoute(
 	EpisodeContentScreen(
 		uiState = uiState,
 		context = context,
-		onUserInputChange = { viewModel.sendIntent(EpisodeIntent.OnUserInputChange(it)) },
+		onValueChange = { text -> viewModel.sendIntent(EpisodeIntent.OnUserInputChange(text)) },
 		onGenerateLLMClick = { viewModel.sendIntent(EpisodeIntent.OnGenerateLLMClick) },
-		onSelectEpisodeClick = { generatedEpisode ->
-			viewModel.sendIntent(EpisodeIntent.OnSelectEpisodeClick(generatedEpisode))
-		},
-		onSelfTypedEpisodeChange = { viewModel.sendIntent(EpisodeIntent.OnSelfTypedEpisodeChange(it)) },
 		onCompleteInfoPick = { viewModel.sendIntent(EpisodeIntent.OnCompleteInfoPick) },
 		onBackClick = { viewModel.sendIntent(EpisodeIntent.OnBackClick) },
 	)
@@ -110,18 +106,12 @@ fun EpisodeContentRoute(
 fun EpisodeContentScreen(
 	uiState: EpisodeState,
 	context: Context,
-	onUserInputChange: (String) -> Unit,
+	onValueChange: (String) -> Unit,
 	onGenerateLLMClick: () -> Unit,
-	onSelectEpisodeClick: (String) -> Unit,
-	onSelfTypedEpisodeChange: (String) -> Unit,
 	onCompleteInfoPick: () -> Unit,
 	onBackClick: () -> Unit,
 ) {
-	var valueChanged by remember { mutableStateOf(uiState.userInput) }
-
-	LaunchedEffect(uiState.userInput) {
-		valueChanged = uiState.userInput
-	}
+	var valueChanged by rememberSaveable { mutableStateOf(uiState.userInput) }
 
 	Scaffold(
 		modifier = Modifier
@@ -179,6 +169,7 @@ fun EpisodeContentScreen(
 					value = valueChanged,
 					onValueChange = { text ->
 						valueChanged = text
+						onValueChange(text)
 					},
 					modifier = Modifier.aspectRatio(1.5f),
 					placeholder = "경험을 자유롭게 적어주세요.\nAI 추천을 받기 위한 내용을 입력하시면 더 정확한 추천을 받을 수 있어요.",
@@ -231,6 +222,7 @@ fun EpisodeContentScreen(
 							onClick = {
 								if (generatedEpisode.isNotBlank()) {
 									valueChanged += " $generatedEpisode"
+									onValueChange(valueChanged)
 								}
 							},
 							borderColor = MapisodeTheme.colorScheme.chipUnselectedStroke,
@@ -252,8 +244,8 @@ fun EpisodeContentScreen(
 					onClick = {
 						onCompleteInfoPick()
 					},
-					text = if (uiState.isEpisodeSelected) "완료" else "내용을 입력해주세요",
-					enabled = uiState.isEpisodeSelected,
+					text = if (valueChanged.isNotBlank()) "완료" else "내용을 입력해주세요",
+					enabled = valueChanged.isNotBlank(),
 					showRipple = true,
 				)
 				Spacer(modifier = Modifier.height(10.dp))
