@@ -1,12 +1,16 @@
 package com.boostcamp.mapisode.episode
 
 import androidx.lifecycle.viewModelScope
+import com.boostcamp.mapisode.common.util.UuidGenerator
 import com.boostcamp.mapisode.datastore.UserPreferenceDataStore
+import com.boostcamp.mapisode.episode.UseCase.UploadNewEpisodeUseCase
 import com.boostcamp.mapisode.episode.common.NewEpisodeConstant.MAP_DEFAULT_ZOOM
 import com.boostcamp.mapisode.episode.repository.GroupRepository
 import com.boostcamp.mapisode.episode.state.EpisodeEffect
 import com.boostcamp.mapisode.episode.state.EpisodeIntent
 import com.boostcamp.mapisode.episode.state.EpisodeState
+import com.boostcamp.mapisode.model.EpisodeLatLng
+import com.boostcamp.mapisode.model.EpisodeModel
 import com.boostcamp.mapisode.network.repository.NaverMapsRepository
 import com.boostcamp.mapisode.ui.base.RevisedBaseViewModel
 import com.boostcamp.mapisode.ui.base.retainFirstIfNavigating
@@ -21,11 +25,13 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.util.Date
 import javax.inject.Inject
 
 @HiltViewModel
 class EpisodeViewModel @Inject constructor(
 	private val userPreferenceDataStore: UserPreferenceDataStore,
+	private val uploadNewEpisodeUseCase: UploadNewEpisodeUseCase,
 	private val groupRepository: GroupRepository,
 	private val naverMapsRepository: NaverMapsRepository,
 	private val imageCaptionRepository: ImageCaptionRepository,
@@ -102,9 +108,38 @@ class EpisodeViewModel @Inject constructor(
 
 					EpisodeIntent.OnCompleteInfoPick -> {
 						sendState { copy(isLoading = true) }
-						delay(2000L)
-						sendEffect { EpisodeEffect.ShowToast("에피소드가 업로드 되었습니다.") }
-						sendEffect { EpisodeEffect.NavigateBackToHomeScreen }
+						val episodeId = UuidGenerator.generate()
+						viewModelScope.launch {
+							currentState.selectedGroups.forEach { groupModel ->
+								val userPreference =
+									userPreferenceDataStore.getUserPreferencesFlow().firstOrNull()
+								userPreference?.let {
+									uploadNewEpisodeUseCase.invoke(
+										EpisodeModel(
+											id = episodeId,
+											category = "see",
+											content = currentState.userInput,
+											createdBy = it.userId ?: "",
+											createdByName = it.username ?: "",
+											group = groupModel.id,
+											imageUrls = currentState.imageUrls,
+											imageUrlsUsedForOnlyUpdate = emptyList(),
+											address = currentState.episodeAddress,
+											location = EpisodeLatLng(
+												latitude = currentState.cameraPosition.target.latitude,
+												longitude = currentState.cameraPosition.target.longitude,
+											),
+											memoryDate = Date(),
+											tags = emptyList(),
+											title = currentState.selectedEpisode,
+											createdAt = Date(),
+										),
+									)
+								}
+							}
+							sendState { copy(isLoading = false) }
+							sendEffect { EpisodeEffect.NavigateBackToHomeScreen }
+						}
 					}
 				}
 			}
