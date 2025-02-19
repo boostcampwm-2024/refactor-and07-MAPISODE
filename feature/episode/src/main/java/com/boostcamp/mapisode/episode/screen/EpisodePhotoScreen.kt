@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.boostcamp.mapisode.designsystem.compose.MapisodeCircularLoadingIndicator
 import com.boostcamp.mapisode.designsystem.theme.MapisodeTheme
@@ -24,6 +25,7 @@ fun EpisodePhotoRoute(
 	viewModel: EpisodeViewModel,
 ) {
 	val uiState = viewModel.state.collectAsStateWithLifecycle().value
+	val context = LocalContext.current
 
 	LaunchedEffect(Unit) {
 		viewModel.effect.collect {
@@ -40,7 +42,7 @@ fun EpisodePhotoRoute(
 
 	EpisodePhotoScreen(
 		onBackClick = { viewModel.sendIntent(EpisodeIntent.OnBackClick) },
-		onSetImages = { images -> viewModel.sendIntent(EpisodeIntent.OnCompletePhotoPicker(images)) },
+		onSetImages = { images -> viewModel.sendIntent(EpisodeIntent.OnCompletePhotoPicker(images, context)) },
 	)
 
 	if (uiState.isLoading) {

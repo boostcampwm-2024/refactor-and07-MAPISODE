@@ -1,9 +1,12 @@
 package com.boostcamp.mapisode.episode
 
+import android.content.Context
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.boostcamp.mapisode.common.util.UuidGenerator
 import com.boostcamp.mapisode.datastore.UserPreferenceDataStore
 import com.boostcamp.mapisode.episode.UseCase.UploadNewEpisodeUseCase
+import com.boostcamp.mapisode.episode.ai.KoLLM
 import com.boostcamp.mapisode.episode.common.NewEpisodeConstant.MAP_DEFAULT_ZOOM
 import com.boostcamp.mapisode.episode.repository.GroupRepository
 import com.boostcamp.mapisode.episode.state.EpisodeEffect
@@ -18,6 +21,7 @@ import com.google.ai.client.generativeai.GenerativeModel
 import com.naver.maps.geometry.LatLng
 import com.naver.maps.map.CameraPosition
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -37,6 +41,8 @@ class EpisodeViewModel @Inject constructor(
 	private val imageCaptionRepository: ImageCaptionRepository,
 ) : RevisedBaseViewModel<EpisodeIntent, EpisodeState, EpisodeEffect>(EpisodeState()) {
 
+	private lateinit var koLLM: KoLLM
+
 	private val gemini = GenerativeModel(
 		modelName = "gemini-1.5-flash",
 		apiKey = BuildConfig.GOOGLE_GENERATIVE_AI,
@@ -55,7 +61,7 @@ class EpisodeViewModel @Inject constructor(
 				}
 
 				is EpisodeIntent.OnCompletePhotoPicker -> {
-					completePhotoPicker(event.imageUrls)
+					completePhotoPicker(event.imageUrls, event.context)
 				}
 
 				EpisodeIntent.OnLoadMyGroups -> {
@@ -153,7 +159,10 @@ class EpisodeViewModel @Inject constructor(
 		sendEffect { EpisodeEffect.NavigateToPreviousScreen }
 	}
 
-	private fun completePhotoPicker(imageUrls: List<String>) {
+	private fun completePhotoPicker(imageUrls: List<String>, context: Context) {
+		koLLM = KoLLM(context)
+		koLLM.initialize()
+
 		sendState {
 			copy(
 				imageUrls = imageUrls.toPersistentList(),
@@ -272,12 +281,24 @@ $userInputText
 - 만약 내가 작성한 글이 비어 있다면, 사진 상황을 기반으로 감정이나 생각을 추론해서 작성해줘.
 - 단, 추론한 내용은 **사진 설명을 그대로 반복하지 말고**, 감정적인 해석을 포함해야 해.
 			""".trimIndent()
-			val episodes =
-				gemini.generateContent(prompt).text?.split("##")?.drop(1)?.map { it.trim() }
-					?: emptyList()
+// 			val episodes =
+// 				gemini.generateContent(prompt).text?.split("##")?.drop(1)?.map { it.trim() }
+// 					?: emptyList()
+
+			val resultLiveData = MutableLiveData<String?>()
+
+			koLLM.generateAsync(prompt)
+				.addOnSuccessListener { generatedText ->
+					resultLiveData.value = generatedText
+				}
+				.addOnFailureListener { e ->
+					// 오류 발생 시, 에러 메시지 또는 빈 문자열 처리
+					resultLiveData.value = "Error: ${e.message}"
+				}
+
 			sendState {
 				copy(
-					generatedEpisodes = episodes.toPersistentList(),
+					generatedEpisodes = resultLiveData.value?.split(",")?.toPersistentList() ?: persistentListOf(),
 					isLoading = false,
 				)
 			}
@@ -286,6 +307,7 @@ $userInputText
 
 	override fun onCleared() {
 		super.onCleared()
+		koLLM.close()
 		Timber.e("EpisodeViewModel onCleared")
 	}
 }

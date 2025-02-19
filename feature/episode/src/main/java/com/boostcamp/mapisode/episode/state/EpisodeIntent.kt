@@ -1,5 +1,6 @@
 package com.boostcamp.mapisode.episode.state
 
+import android.content.Context
 import androidx.compose.runtime.Immutable
 import com.boostcamp.mapisode.model.GroupModel
 import com.boostcamp.mapisode.ui.base.UiIntent
@@ -11,7 +12,8 @@ sealed class EpisodeIntent : UiIntent {
 	data object OnBackClick : EpisodeIntent()
 
 	// 포토 피커
-	data class OnCompletePhotoPicker(val imageUrls: List<String>) : EpisodeIntent()
+	data class OnCompletePhotoPicker(val imageUrls: List<String>, val context: Context) :
+		EpisodeIntent()
 
 	// 그룹 선택
 	data object OnLoadMyGroups : EpisodeIntent()
