@@ -61,6 +61,9 @@ ksp = "2.0.21-1.0.25"
 ## Ktlint
 ktlint = "11.6.1"
 
+# litert
+litert = "1.1.2"
+
 # MediaPipe
 mediapipeGenai = "0.10.14"
 
@@ -154,6 +157,9 @@ kotlinx-serialization-convertor = { group = "com.jakewharton.retrofit", name = "
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "kotlinx-coroutines" }
 kotlinx-immutable = { group = "org.jetbrains.kotlinx", name = "kotlinx-collections-immutable", version.ref = "kotlinx-immutable" }
+
+# litert
+litert = { group = "com.github.fornewid", name = "litert", version.ref = "litert" }
 
 # MediaPipe
 mediapipe-tasks-genai = { group = "com.google.mediapipe", name = "tasks-genai", version.ref = "mediapipeGenai"}
