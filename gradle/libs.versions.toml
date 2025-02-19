@@ -93,6 +93,9 @@ material = "1.12.0"
 
 # Translate
 translate = "17.0.3"
+tensorflowLiteSupport = "0.1.0"
+tensorflowLiteMetadata = "0.1.0"
+tensorflowLiteGpu = "2.3.0"
 
 [libraries]
 # Androidx Core
@@ -159,7 +162,8 @@ kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 kotlinx-immutable = { group = "org.jetbrains.kotlinx", name = "kotlinx-collections-immutable", version.ref = "kotlinx-immutable" }
 
 # litert
-litert = { group = "com.github.fornewid", name = "litert", version.ref = "litert" }
+litert = { group = "com.google.ai.edge.litert", name = "litert", version.ref = "litert" }
+litert-support = { group = "com.google.ai.edge.litert", name = "litert-support", version.ref = "litert" }
 
 # MediaPipe
 mediapipe-tasks-genai = { group = "com.google.mediapipe", name = "tasks-genai", version.ref = "mediapipeGenai"}
@@ -192,6 +196,11 @@ timber = { group = "com.jakewharton.timber", name = "timber", version.ref = "tim
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidx-junit" }
 espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espresso-core" }
+
+# TensorFlow Lite
+tensorflow-lite-support = { group = "org.tensorflow", name = "tensorflow-lite-support", version.ref = "tensorflowLiteSupport" }
+tensorflow-lite-metadata = { group = "org.tensorflow", name = "tensorflow-lite-metadata", version.ref = "tensorflowLiteMetadata" }
+tensorflow-lite-gpu = { group = "org.tensorflow", name = "tensorflow-lite-gpu", version.ref = "tensorflowLiteGpu" }
 
 # Translate
 translate = { module = "com.google.mlkit:translate", version.ref = "translate" }
