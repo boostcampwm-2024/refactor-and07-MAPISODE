@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -215,20 +216,28 @@ fun EpisodeContentScreen(
 
 					Spacer(modifier = Modifier.height(4.dp))
 
-					repeat(maxOf(3, uiState.generatedEpisodes.size)) { index ->
-						val generatedEpisode = uiState.generatedEpisodes.getOrNull(index) ?: ""
-						MapisodeOutlinedButton(
-							text = generatedEpisode,
-							onClick = {
-								if (generatedEpisode.isNotBlank()) {
-									valueChanged += " $generatedEpisode"
-									onValueChange(valueChanged)
-								}
-							},
-							borderColor = MapisodeTheme.colorScheme.chipUnselectedStroke,
-							contentColor = MapisodeTheme.colorScheme.chipUnselectedStroke,
-						)
-						Spacer(modifier = Modifier.height(8.dp))
+					Column(
+						modifier = Modifier
+							.fillMaxWidth()
+							.height(200.dp)
+							.verticalScroll(rememberScrollState()),
+						horizontalAlignment = Alignment.CenterHorizontally,
+					) {
+						repeat(uiState.generatedEpisodes.size) { index ->
+							val generatedEpisode = uiState.generatedEpisodes.getOrNull(index) ?: ""
+							MapisodeOutlinedButton(
+								text = generatedEpisode,
+								onClick = {
+									if (generatedEpisode.isNotBlank()) {
+										valueChanged += " $generatedEpisode"
+										onValueChange(valueChanged)
+									}
+								},
+								borderColor = MapisodeTheme.colorScheme.chipUnselectedStroke,
+								contentColor = MapisodeTheme.colorScheme.chipUnselectedStroke,
+							)
+							Spacer(modifier = Modifier.height(8.dp))
+						}
 					}
 				}
 			}
