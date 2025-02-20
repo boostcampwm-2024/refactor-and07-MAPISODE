@@ -37,7 +37,6 @@ class EpisodeViewModel @Inject constructor(
 	private val uploadNewEpisodeUseCase: UploadNewEpisodeUseCase,
 	private val groupRepository: GroupRepository,
 	private val naverMapsRepository: NaverMapsRepository,
-	private val imageCaptionRepository: ImageCaptionRepository,
 	private val translationRepository: TranslationRepository,
 	private val llmRepository: LlmRepository,
 	private val objectDetectionRepository: ObjectDetectionRepository,
@@ -54,17 +53,24 @@ class EpisodeViewModel @Inject constructor(
 	init {
 		viewModelScope.launch(Dispatchers.IO) {
 			launch { objectDetectionRepository.setObjectDetector() }
-			launch { translationRepository.setEnglishKoreanTranslator() }
+			launch { setTranslationInstance() }
 			launch { llmRepository.setLlmInference() }
 		}
 		viewModelScope.launch {
 			generatedResult.collectLatest {
 				sendState {
 					copy(
-						generatedEpisodes = it.split("##").drop(1).map { it.trim() }.toPersistentList(),
+						generatedEpisodes = it.split(".").toPersistentList(),
 					)
 				}
 			}
+		}
+	}
+
+	private fun setTranslationInstance() {
+		translationRepository.setEnglishKoreanTranslator()
+		if (!translationRepository.isModelReady) {
+			translationRepository.downloadModel()
 		}
 	}
 
@@ -229,8 +235,6 @@ class EpisodeViewModel @Inject constructor(
 	private fun navigateToInfoScreen() {
 		if (currentState.episodeAddress.isNotBlank() && currentState.selectedGroups.isNotEmpty()) {
 			getImageCaption(currentState.imageUrls)
-			setTranslationInstance()
-			llmRepository.setLlmInference()
 			sendEffect { EpisodeEffect.NavigateToContentScreen }
 		} else {
 			sendEffect { EpisodeEffect.ShowToast("위치와 그룹을 선택해주세요.") }
@@ -238,14 +242,13 @@ class EpisodeViewModel @Inject constructor(
 	}
 
 	private fun getImageCaption(imageUrls: List<String>) {
-		viewModelScope.launch {
+		viewModelScope.launch(Dispatchers.IO) {
 			// azure image captioning api
 // 			val imageCaption = imageUrls.map {
 // 				imageCaptionRepository.generateImageCaption(it)
 // 			}.joinToString("\n") { it.joinToString(",") }
 
 			// google on-device object detection
-			objectDetectionRepository.setObjectDetector()
 			val objectDetectionResult = imageUrls.map {
 				objectDetectionRepository.detect(it).filter { detectionResult ->
 					detectionResult.score > 0.6
@@ -256,13 +259,6 @@ class EpisodeViewModel @Inject constructor(
 
 			sendState { copy(imageCaption = objectDetectionResult) }
 			Timber.e("imageCaption: $objectDetectionResult")
-		}
-	}
-
-	private fun setTranslationInstance() {
-		translationRepository.setEnglishKoreanTranslator()
-		if (!translationRepository.isModelReady) {
-			translationRepository.downloadModel()
 		}
 	}
 
