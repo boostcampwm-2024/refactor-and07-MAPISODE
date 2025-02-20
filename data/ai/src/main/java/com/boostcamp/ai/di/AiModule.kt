@@ -29,7 +29,6 @@ object AiModule {
 	}
 
 	@Provides
-	@Singleton
 	fun provideTranslationRepository(): TranslationRepository {
 		return TranslationRepositoryImpl()
 	}

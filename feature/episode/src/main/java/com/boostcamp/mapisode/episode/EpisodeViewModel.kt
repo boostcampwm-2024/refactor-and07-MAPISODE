@@ -18,6 +18,7 @@ import com.google.ai.client.generativeai.GenerativeModel
 import com.naver.maps.geometry.LatLng
 import com.naver.maps.map.CameraPosition
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -30,6 +31,8 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.util.Date
 import javax.inject.Inject
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 @HiltViewModel
 class EpisodeViewModel @Inject constructor(
@@ -38,6 +41,7 @@ class EpisodeViewModel @Inject constructor(
 	private val groupRepository: GroupRepository,
 	private val naverMapsRepository: NaverMapsRepository,
 	private val translationRepository: TranslationRepository,
+	private val reverseTranslationRepository: TranslationRepository,
 	private val llmRepository: LlmRepository,
 	private val objectDetectionRepository: ObjectDetectionRepository,
 ) : RevisedBaseViewModel<EpisodeIntent, EpisodeState, EpisodeEffect>(EpisodeState()) {
@@ -47,20 +51,22 @@ class EpisodeViewModel @Inject constructor(
 		apiKey = BuildConfig.GOOGLE_GENERATIVE_AI,
 	)
 
-	private val _generatedResult = MutableStateFlow("")
-	val generatedResult = _generatedResult.asStateFlow()
+	private val _generatedResult = MutableStateFlow<String?>(null)
+	private val generatedResult = _generatedResult.asStateFlow()
 
 	init {
 		viewModelScope.launch(Dispatchers.IO) {
 			launch { objectDetectionRepository.setObjectDetector() }
 			launch { setTranslationInstance() }
+			launch { setReverseTranslationInstance() }
 			launch { llmRepository.setLlmInference() }
 		}
 		viewModelScope.launch {
 			generatedResult.collectLatest {
 				sendState {
 					copy(
-						generatedEpisodes = it.split(".").toPersistentList(),
+						generatedEpisodes = it?.split(".")?.filter { it.isNotBlank() }
+							?.map { "$it." }?.toPersistentList() ?: persistentListOf(),
 					)
 				}
 			}
@@ -71,6 +77,13 @@ class EpisodeViewModel @Inject constructor(
 		translationRepository.setEnglishKoreanTranslator()
 		if (!translationRepository.isModelReady) {
 			translationRepository.downloadModel()
+		}
+	}
+
+	private fun setReverseTranslationInstance() {
+		reverseTranslationRepository.setKoreanEnglishTranslator()
+		if (!reverseTranslationRepository.isModelReady) {
+			reverseTranslationRepository.downloadReverseModel()
 		}
 	}
 
@@ -251,9 +264,9 @@ class EpisodeViewModel @Inject constructor(
 			// google on-device object detection
 			val objectDetectionResult = imageUrls.map {
 				objectDetectionRepository.detect(it).filter { detectionResult ->
-					detectionResult.score > 0.6
+					detectionResult.score > 0.1
 				}.joinToString(",") { detectionObject ->
-					"${detectionObject.className} is detected on the photo."
+					"${detectionObject.className} is with me."
 				}
 			}.joinToString("\n")
 
@@ -292,27 +305,32 @@ class EpisodeViewModel @Inject constructor(
 
 	private fun generateStories(imageCaption: String, userInputText: String) {
 		viewModelScope.launch(Dispatchers.IO) {
+			val translatedUserInput = suspendCoroutine { continuation ->
+				reverseTranslationRepository.translate(
+					text = userInputText,
+					onSuccess = { translatedText ->
+						continuation.resume(translatedText)
+					},
+					onFailure = { error ->
+						Timber.e("Translation failed: $error")
+						continuation.resume("")
+					},
+					onComplete = {
+						Timber.e("Translation completed")
+					},
+				)
+			}
+			Timber.e("translatedUserInput: $translatedUserInput")
 			val prompt = """
-"situation of the picture" : $imageCaption
-The above is an objective explanation of the "situation of the picture" I filmed.
+Write a first-person diary.
+Context: $imageCaption (use for background only).
+Main Content: $translatedUserInput (focus on this).
 
-The post below is what I felt on the day I filmed it. This might be empty.
-However, if this article exists, please **** be sure to create a diary summary around it.
-The situation in the picture is only used as background information, and the key is to reflect what I wrote.
-
-Please write a diary summary based on the article below "What I've been through":
-"What I've been through" : $userInputText
-
-**Requirements**:
-- Please make sure to **write it based on my writing.
-- **The situation in the picture is only supplementary**, the core content is taken from my writing.
-- Don't tell me about the photos.
-- Please set the speaker to me.
-- Output format: Put '##' at the beginning of each line and write about 40 characters per line. Write a total of three lines. Each line should be independent.
-
-**Additional Processing**:
-- If my writing is empty, please write by inferring your feelings or thoughts based on the photo situation.
-- However, the inferred content should include an emotional interpretation instead of repeating the **photographic description as it is.
+Output Format:
+Write 3 independent lines within 40 characters.
+Each Line should be a complete sentence.
+Do not use any special characters.
+Answer the question only.
 			""".trimIndent()
 // 			val episodes =
 // 				gemini.generateContent(prompt).text?.split("##")?.drop(1)?.map { it.trim() }

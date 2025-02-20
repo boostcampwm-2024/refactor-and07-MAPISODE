@@ -19,6 +19,13 @@ class TranslationRepositoryImpl : TranslationRepository {
 			.build()
 	}
 
+	private val reverseOptions by lazy {
+		TranslatorOptions.Builder()
+			.setSourceLanguage(TranslateLanguage.KOREAN)
+			.setTargetLanguage(TranslateLanguage.ENGLISH)
+			.build()
+	}
+
 	private val conditions by lazy {
 		DownloadConditions.Builder()
 			.requireWifi()
@@ -36,11 +43,32 @@ class TranslationRepositoryImpl : TranslationRepository {
 	override fun setEnglishKoreanTranslator() {
 		if (englishKoreanTranslator == null) {
 			englishKoreanTranslator = Translation.getClient(options)
+			Timber.e("Translator created $this")
+		}
+	}
+
+	override fun setKoreanEnglishTranslator() {
+		if (englishKoreanTranslator == null) {
+			englishKoreanTranslator = Translation.getClient(reverseOptions)
 			Timber.e("Translator created")
 		}
 	}
 
 	override fun downloadModel() {
+		englishKoreanTranslator?.run {
+			downloadModelIfNeeded(conditions)
+				.addOnSuccessListener {
+					Timber.e("Model downloaded successfully")
+					isModelReady = true
+				}
+				.addOnFailureListener {
+					Timber.e("Model download failed: $it")
+					isModelReady = false
+				}
+		}
+	}
+
+	override fun downloadReverseModel() {
 		englishKoreanTranslator?.run {
 			downloadModelIfNeeded(conditions)
 				.addOnSuccessListener {
