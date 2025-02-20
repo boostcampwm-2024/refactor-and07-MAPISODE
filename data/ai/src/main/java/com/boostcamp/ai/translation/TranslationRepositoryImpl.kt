@@ -108,7 +108,7 @@ class TranslationRepositoryImpl : TranslationRepository {
 			englishKoreanTranslator?.run {
 				translate(text)
 					.addOnSuccessListener {
-						Timber.e("Translation success: $it")
+						Timber.d("Translation success: $it")
 						onSuccess(it)
 					}
 					.addOnFailureListener { exception ->

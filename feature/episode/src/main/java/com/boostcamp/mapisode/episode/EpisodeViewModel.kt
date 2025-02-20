@@ -65,7 +65,7 @@ class EpisodeViewModel @Inject constructor(
 			generatedResult.collectLatest {
 				sendState {
 					copy(
-						generatedEpisodes = it?.split(".")?.filter { it.isNotBlank() }
+						generatedEpisodes = it?.split(".")?.filter { it.isNotBlank() && !it.contains("물론,") }
 							?.map { "$it." }?.toPersistentList() ?: persistentListOf(),
 					)
 				}
@@ -265,13 +265,13 @@ class EpisodeViewModel @Inject constructor(
 			val objectDetectionResult = imageUrls.map {
 				objectDetectionRepository.detect(it).filter { detectionResult ->
 					detectionResult.score > 0.1
-				}.joinToString(",") { detectionObject ->
-					"${detectionObject.className} is with me."
+				}.joinToString(",", postfix = " are around me.") { detectionObject ->
+					detectionObject.className
 				}
 			}.joinToString("\n")
 
 			sendState { copy(imageCaption = objectDetectionResult) }
-			Timber.e("imageCaption: $objectDetectionResult")
+			Timber.d("Object Detection: $objectDetectionResult")
 		}
 	}
 
@@ -309,7 +309,7 @@ class EpisodeViewModel @Inject constructor(
 				reverseTranslationRepository.translate(
 					text = userInputText,
 					onSuccess = { translatedText ->
-						continuation.resume(translatedText)
+						continuation.resume("$translatedText.This happened at ${currentState.episodeAddress}.")
 					},
 					onFailure = { error ->
 						Timber.e("Translation failed: $error")
@@ -325,12 +325,9 @@ class EpisodeViewModel @Inject constructor(
 Write a first-person diary.
 Context: $imageCaption (use for background only).
 Main Content: $translatedUserInput (focus on this).
-
-Output Format:
 Write 3 independent lines within 40 characters.
-Each Line should be a complete sentence.
-Do not use any special characters.
-Answer the question only.
+Each Line should be a complete and formal sentence.
+Generate the next part of the response.
 			""".trimIndent()
 // 			val episodes =
 // 				gemini.generateContent(prompt).text?.split("##")?.drop(1)?.map { it.trim() }
