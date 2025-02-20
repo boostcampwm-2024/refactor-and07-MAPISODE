@@ -36,10 +36,11 @@ class ObjectDetectionRepositoryImpl(private val context: Context) : ObjectDetect
 			BitmapFactory.decodeStream(inputStream)
 		}
 		val mpImage = BitmapImageBuilder(image).build()
-		return objectDetector?.detect(mpImage)?.let {
-			Timber.e(it.toString())
+		val result = objectDetector?.detect(mpImage)?.let {
 			parseDetectionString(it.toString())
 		} ?: emptyList()
+		Timber.d("Object detection result: $result")
+		return result
 	}
 
 	private fun parseDetectionString(input: String): List<DetectionResult> {

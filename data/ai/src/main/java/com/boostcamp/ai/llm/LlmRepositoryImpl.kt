@@ -27,10 +27,9 @@ class LlmRepositoryImpl(private val context: Context) : LlmRepository {
 	}
 
 	override fun generateLlm(text: String): String {
-		return llmInference?.let {
-			Timber.e(it.toString())
-			it.generateResponse(text)
-		} ?: ""
+		val result = llmInference?.generateResponse(text) ?: ""
+		Timber.d("LlmInference generated: $result")
+		return result
 	}
 
 	override fun close() {
