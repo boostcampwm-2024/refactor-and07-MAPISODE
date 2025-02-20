@@ -1,8 +1,15 @@
 package com.boostcamp.mapisode.episode
 
 interface TranslationRepository {
-	fun translate(text: String, callback: (String) -> Unit): List<String>
+	fun setEnglishKoreanTranslator()
+	var isModelReady: Boolean
+	fun translate(
+		text: String,
+		onSuccess: (String) -> Unit,
+		onFailure: (String) -> Unit,
+		onComplete: () -> Unit,
+	)
 	fun downloadModel()
-	fun deleteModel()
+	fun deleteModel(onDeleteSuccess: () -> Unit, onDeleteFailure: (String) -> Unit)
 	fun close()
 }

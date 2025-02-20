@@ -6,40 +6,62 @@ import com.google.mlkit.common.model.RemoteModelManager
 import com.google.mlkit.nl.translate.TranslateLanguage
 import com.google.mlkit.nl.translate.TranslateRemoteModel
 import com.google.mlkit.nl.translate.Translation
+import com.google.mlkit.nl.translate.Translator
 import com.google.mlkit.nl.translate.TranslatorOptions
 import timber.log.Timber
 
 class TranslationRepositoryImpl : TranslationRepository {
 
-	private val options = TranslatorOptions.Builder()
-		.setSourceLanguage(TranslateLanguage.ENGLISH)
-		.setTargetLanguage(TranslateLanguage.KOREAN)
-		.build()
-	private val conditions = DownloadConditions.Builder()
-		// Wi-Fi is only accepted for downloading the model
-		.requireWifi()
-		.build()
-	private val modelManager = RemoteModelManager.getInstance()
-	private var isModelReady = false
-	private val englishKoreanTranslator = Translation.getClient(options)
-
-	override fun downloadModel() {
-		englishKoreanTranslator.downloadModelIfNeeded(conditions)
-			.addOnSuccessListener {
-				Timber.e("Model downloaded successfully")
-				isModelReady = true
-			}
-			.addOnFailureListener {
-				Timber.e("Model download failed: $it")
-				isModelReady = false
-			}
+	private val options by lazy {
+		TranslatorOptions.Builder()
+			.setSourceLanguage(TranslateLanguage.ENGLISH)
+			.setTargetLanguage(TranslateLanguage.KOREAN)
+			.build()
 	}
 
-	override fun deleteModel() {
+	private val conditions by lazy {
+		DownloadConditions.Builder()
+			.requireWifi()
+			.build()
+	}
+
+	private val modelManager by lazy {
+		RemoteModelManager.getInstance()
+	}
+
+	override var isModelReady = false
+
+	private var englishKoreanTranslator: Translator? = null
+
+	override fun setEnglishKoreanTranslator() {
+		if (englishKoreanTranslator == null) {
+			englishKoreanTranslator = Translation.getClient(options)
+		}
+	}
+
+	override fun downloadModel() {
+		englishKoreanTranslator?.run {
+			downloadModelIfNeeded(conditions)
+				.addOnSuccessListener {
+					Timber.e("Model downloaded successfully")
+					isModelReady = true
+				}
+				.addOnFailureListener {
+					Timber.e("Model download failed: $it")
+					isModelReady = false
+				}
+		}
+	}
+
+	override fun deleteModel(
+		onDeleteSuccess: () -> Unit,
+		onDeleteFailure: (String) -> Unit,
+	) {
 		val koreanModel = TranslateRemoteModel.Builder(TranslateLanguage.KOREAN).build()
 		modelManager.deleteDownloadedModel(koreanModel)
 			.addOnSuccessListener {
 				Timber.e("Model deleted")
+				isModelReady = false
 			}
 			.addOnFailureListener {
 				Timber.e("Model deletion failed")
@@ -48,26 +70,30 @@ class TranslationRepositoryImpl : TranslationRepository {
 
 	override fun translate(
 		text: String,
-		callback: (String) -> Unit,
-	): List<String> {
-		var result = ""
+		onSuccess: (String) -> Unit,
+		onFailrue: (String) -> Unit,
+		onComplete: () -> Unit,
+	) {
 		if (isModelReady) {
-			englishKoreanTranslator.translate(text)
-				.addOnSuccessListener {
-					Timber.e("Translation result for 1 line: $it")
-					callback(it)
-					result = it
-				}
-				.addOnFailureListener { exception ->
-					result = "Translation failed: $exception"
-				}
+			englishKoreanTranslator?.run {
+				translate(text)
+					.addOnSuccessListener {
+						onSuccess(it)
+					}
+					.addOnFailureListener { exception ->
+						onFailrue(exception.localizedMessage ?: "Translation failed")
+					}
+					.addOnCompleteListener {
+						onComplete()
+					}
+			}
 		} else {
-			result = "Model is not ready"
+			onFailrue("Model is not ready")
 		}
-		return result.split("##")
 	}
 
 	override fun close() {
-		englishKoreanTranslator.close()
+		englishKoreanTranslator?.close()
+		englishKoreanTranslator = null
 	}
 }
