@@ -36,6 +36,7 @@ class TranslationRepositoryImpl : TranslationRepository {
 	override fun setEnglishKoreanTranslator() {
 		if (englishKoreanTranslator == null) {
 			englishKoreanTranslator = Translation.getClient(options)
+			Timber.e("Translator created")
 		}
 	}
 
@@ -74,10 +75,12 @@ class TranslationRepositoryImpl : TranslationRepository {
 		onFailrue: (String) -> Unit,
 		onComplete: () -> Unit,
 	) {
+		Timber.e("Translating: $text")
 		if (isModelReady) {
 			englishKoreanTranslator?.run {
 				translate(text)
 					.addOnSuccessListener {
+						Timber.e("Translation success: $it")
 						onSuccess(it)
 					}
 					.addOnFailureListener { exception ->

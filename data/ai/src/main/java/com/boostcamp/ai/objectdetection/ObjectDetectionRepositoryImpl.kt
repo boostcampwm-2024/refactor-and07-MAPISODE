@@ -10,9 +10,10 @@ import com.google.mediapipe.tasks.core.BaseOptions
 import com.google.mediapipe.tasks.vision.core.RunningMode
 import com.google.mediapipe.tasks.vision.objectdetector.ObjectDetector
 import com.google.mediapipe.tasks.vision.objectdetector.ObjectDetector.ObjectDetectorOptions
+import timber.log.Timber
 
 class ObjectDetectionRepositoryImpl(private val context: Context) : ObjectDetectionRepository {
-	val options by lazy {
+	private val options: ObjectDetectorOptions by lazy {
 		ObjectDetectorOptions.builder()
 			.setBaseOptions(
 				BaseOptions.builder().setModelAssetPath("efficientdet_lite2.tflite").build(),
@@ -36,49 +37,50 @@ class ObjectDetectionRepositoryImpl(private val context: Context) : ObjectDetect
 		}
 		val mpImage = BitmapImageBuilder(image).build()
 		return objectDetector?.detect(mpImage)?.let {
-			parseDetectionResults(it.toString())
+			Timber.e(it.toString())
+			parseDetectionString(it.toString())
 		} ?: emptyList()
 	}
 
-	private fun parseDetectionResults(resultString: String): List<DetectionResult> {
-		val detectionResults = mutableListOf<DetectionResult>()
+	private fun parseDetectionString(input: String): List<DetectionResult> {
+		// 정규식 패턴들
+		val categoryPattern = """Category "([^"]+)"[^)]*score=([0-9.]+)""".toRegex()
+		val boundingBoxPattern = """RectF\(([0-9.]+), ([0-9.]+), ([0-9.]+), ([0-9.]+)\)""".toRegex()
 
-		// "Detection #"을 기준으로 각각의 블록으로 나눔
-		val detectionBlocks = resultString.split("Detection #").drop(1)
+		// Detection 블록들을 찾기
+		val detectionBlocks = input.split("Detection{")
+			.drop(1) // 첫 번째 요소는 헤더이므로 제외
 
-		// Box 정보 추출 정규식: (x: 숫자, y: 숫자, w: 숫자, h: 숫자)
-		val boxRegex = Regex("""Box:\s*\(x:\s*(\d+),\s*y:\s*(\d+),\s*w:\s*(\d+),\s*h:\s*(\d+)\)""")
-		// score 정보 추출 정규식
-		val scoreRegex = Regex("""score\s*:\s*([0-9.]+)""")
-		// class name 정보 추출 정규식
-		val classNameRegex = Regex("""class name\s*:\s*(\S+)""")
+		return detectionBlocks.mapNotNull { block ->
+			try {
+				// Category 정보 추출
+				val categoryMatch = categoryPattern.find(block) ?: return@mapNotNull null
+				val className = categoryMatch.groupValues[1]
+				val score = categoryMatch.groupValues[2].toFloat()
 
-		for (block in detectionBlocks) {
-			val boxMatch = boxRegex.find(block)
-			val scoreMatch = scoreRegex.find(block)
-			val classNameMatch = classNameRegex.find(block)
+				// BoundingBox 정보 추출
+				val boundingBoxMatch = boundingBoxPattern.find(block) ?: return@mapNotNull null
+				val left = boundingBoxMatch.groupValues[1].toFloat().toInt()
+				val top = boundingBoxMatch.groupValues[2].toFloat().toInt()
+				val right = boundingBoxMatch.groupValues[3].toFloat().toInt()
+				val bottom = boundingBoxMatch.groupValues[4].toFloat().toInt()
 
-			if (boxMatch != null && scoreMatch != null && classNameMatch != null) {
-				val x = boxMatch.groupValues[1].toInt()
-				val y = boxMatch.groupValues[2].toInt()
-				val w = boxMatch.groupValues[3].toInt()
-				val h = boxMatch.groupValues[4].toInt()
-				val score = scoreMatch.groupValues[1].toFloat()
-				val className = classNameMatch.groupValues[1]
+				// width와 height 계산
+				val width = right - left
+				val height = bottom - top
 
-				detectionResults.add(
-					DetectionResult(
-						className = className,
-						score = score,
-						x = x,
-						y = y,
-						width = w,
-						height = h,
-					),
+				DetectionResult(
+					className = className,
+					score = score,
+					x = left,
+					y = bottom, // 왼쪽 하단 y좌표이므로 bottom 값 사용
+					width = width,
+					height = height,
 				)
+			} catch (e: Exception) {
+				null // 파싱 실패 시 null 반환하여 필터링
 			}
 		}
-		return detectionResults
 	}
 
 	override fun close() {
