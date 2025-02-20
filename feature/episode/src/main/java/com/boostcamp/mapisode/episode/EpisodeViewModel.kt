@@ -21,7 +21,10 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -44,6 +47,26 @@ class EpisodeViewModel @Inject constructor(
 		modelName = "gemini-1.5-flash",
 		apiKey = BuildConfig.GOOGLE_GENERATIVE_AI,
 	)
+
+	private val _generatedResult = MutableStateFlow("")
+	val generatedResult = _generatedResult.asStateFlow()
+
+	init {
+		viewModelScope.launch(Dispatchers.IO) {
+			launch { objectDetectionRepository.setObjectDetector() }
+			launch { translationRepository.setEnglishKoreanTranslator() }
+			launch { llmRepository.setLlmInference() }
+		}
+		viewModelScope.launch {
+			generatedResult.collectLatest {
+				sendState {
+					copy(
+						generatedEpisodes = it.split("##").drop(1).map { it.trim() }.toPersistentList(),
+					)
+				}
+			}
+		}
+	}
 
 	override suspend fun reducer(intent: SharedFlow<EpisodeIntent>) {
 		intent.retainFirstIfNavigating(
@@ -145,7 +168,6 @@ class EpisodeViewModel @Inject constructor(
 							}
 						}
 						sendState { copy(isLoading = false) }
-						llmRepository.setLlmInference()
 						sendEffect { EpisodeEffect.NavigateBackToHomeScreen }
 					}
 				}
@@ -208,6 +230,7 @@ class EpisodeViewModel @Inject constructor(
 		if (currentState.episodeAddress.isNotBlank() && currentState.selectedGroups.isNotEmpty()) {
 			getImageCaption(currentState.imageUrls)
 			setTranslationInstance()
+			llmRepository.setLlmInference()
 			sendEffect { EpisodeEffect.NavigateToContentScreen }
 		} else {
 			sendEffect { EpisodeEffect.ShowToast("위치와 그룹을 선택해주세요.") }
@@ -217,15 +240,19 @@ class EpisodeViewModel @Inject constructor(
 	private fun getImageCaption(imageUrls: List<String>) {
 		viewModelScope.launch {
 			// azure image captioning api
-			val imageCaption = imageUrls.map {
-				imageCaptionRepository.generateImageCaption(it)
-			}.joinToString("\n") { it.joinToString(",") }
+// 			val imageCaption = imageUrls.map {
+// 				imageCaptionRepository.generateImageCaption(it)
+// 			}.joinToString("\n") { it.joinToString(",") }
 
 			// google on-device object detection
 			objectDetectionRepository.setObjectDetector()
 			val objectDetectionResult = imageUrls.map {
-				objectDetectionRepository.detect(it)
-			}.joinToString("\n") { it.joinToString(",") }
+				objectDetectionRepository.detect(it).filter { detectionResult ->
+					detectionResult.score > 0.6
+				}.joinToString(",") { detectionObject ->
+					"${detectionObject.className} is detected on the photo."
+				}
+			}.joinToString("\n")
 
 			sendState { copy(imageCaption = objectDetectionResult) }
 			Timber.e("imageCaption: $objectDetectionResult")
@@ -268,60 +295,44 @@ class EpisodeViewModel @Inject constructor(
 	}
 
 	private fun generateStories(imageCaption: String, userInputText: String) {
-		viewModelScope.launch {
+		viewModelScope.launch(Dispatchers.IO) {
 			val prompt = """
-$imageCaption
-위의 글은 내가 촬영한 "사진의 상황"에 대한 객관적인 설명이야.
+"situation of the picture" : $imageCaption
+The above is an objective explanation of the "situation of the picture" I filmed.
 
-아래의 글은 내가 촬영한 당일에 느낀 생각을 작성한 글이야. 이 글은 비어있을 수도 있어.
-그러나, 이 글이 존재하는 경우 **반드시** 이를 중심으로 일기 요약을 생성해줘.
-사진의 상황은 배경 정보로만 활용하고, 핵심은 내가 작성한 글을 반영하는 거야.
+The post below is what I felt on the day I filmed it. This might be empty.
+However, if this article exists, please **** be sure to create a diary summary around it.
+The situation in the picture is only used as background information, and the key is to reflect what I wrote.
 
-"내가 작성한 글"인 아래 글을 기반으로 일기 요약을 작성해줘:
-$userInputText
+Please write a diary summary based on the article below "What I've been through":
+"What I've been through" : $userInputText
 
-**요구사항**:
-- 반드시 **내가 작성한 글을 기반으로** 작성해줘.
-- **사진의 상황은 보조 자료일 뿐**, 핵심 내용은 내가 작성한 글에서 가져와.
-- 사진 찍은 이야기는 하지마.
-- 화자는 나로 설정해줘.
-- 문장의 어미를 "~다"로 설정해서 작성해줘.
-- 출력 형식: 각 줄의 맨 앞에 `## `를 붙이고, 한 줄에 40자 내외로 작성해줘. 총 세 줄 작성해줘. 각 줄은 독립적인 내용이어야 해.
+**Requirements**:
+- Please make sure to **write it based on my writing.
+- **The situation in the picture is only supplementary**, the core content is taken from my writing.
+- Don't tell me about the photos.
+- Please set the speaker to me.
+- Output format: Put '##' at the beginning of each line and write about 40 characters per line. Write a total of three lines. Each line should be independent.
 
-**추가 처리**:
-- 만약 내가 작성한 글이 비어 있다면, 사진 상황을 기반으로 감정이나 생각을 추론해서 작성해줘.
-- 단, 추론한 내용은 **사진 설명을 그대로 반복하지 말고**, 감정적인 해석을 포함해야 해.
+**Additional Processing**:
+- If my writing is empty, please write by inferring your feelings or thoughts based on the photo situation.
+- However, the inferred content should include an emotional interpretation instead of repeating the **photographic description as it is.
 			""".trimIndent()
 // 			val episodes =
 // 				gemini.generateContent(prompt).text?.split("##")?.drop(1)?.map { it.trim() }
 // 					?: emptyList()
-
-			val episodes = llmRepository.generateLlm(prompt).split("##").map { it.trim() }
-			val translatedEpisodes = mutableListOf<String>()
-			var isTranslated = false
-			episodes.forEach {
-				translationRepository.translate(
-					text = it,
-					onSuccess = { translatedText ->
-						translatedEpisodes.add(translatedText)
-					},
-					onFailure = { error ->
-						Timber.e("Translation failed: $error")
-					},
-					onComplete = { isTranslated = true },
-				)
-			}
-			while (!isTranslated) {
-				delay(100)
-				if (isTranslated) {
-					sendState {
-						copy(
-							generatedEpisodes = translatedEpisodes.toPersistentList(),
-							isLoading = false,
-						)
-					}
-				}
-			}
+			translationRepository.translate(
+				text = llmRepository.generateLlm(prompt),
+				onSuccess = { translatedText ->
+					_generatedResult.value = translatedText
+				},
+				onFailure = { error ->
+					Timber.e("Translation failed: $error")
+				},
+				onComplete = {
+					sendState { copy(isLoading = false) }
+				},
+			)
 		}
 	}
 
