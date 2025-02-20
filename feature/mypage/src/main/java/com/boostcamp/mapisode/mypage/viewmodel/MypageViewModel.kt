@@ -37,9 +37,8 @@ class MypageViewModel @Inject constructor(
 					intent {
 						copy(
 							isLoading = false,
-							name = userPreferences.username ?: throw Exception("Username is null"),
-							profileUrl = userPreferences.profileUrl
-								?: throw Exception("ProfileUrl is null"),
+							name = userPreferences.username ?: "",
+							profileUrl = userPreferences.profileUrl ?: "",
 						)
 					}
 				}

@@ -38,10 +38,9 @@ class ProfileEditViewModel @Inject constructor(
 					intent {
 						copy(
 							isLoading = false,
-							uid = userPreferences.userId ?: throw Exception("UserId is null"),
-							name = userPreferences.username ?: throw Exception("Username is null"),
-							profileUrl = userPreferences.profileUrl
-								?: throw Exception("ProfileUrl is null"),
+							uid = userPreferences.userId ?: "",
+							name = userPreferences.username ?: "",
+							profileUrl = userPreferences.profileUrl ?: "",
 						)
 					}
 				}
@@ -113,8 +112,8 @@ class ProfileEditViewModel @Inject constructor(
 				imageUri = currentState.profileUrl,
 				uid = currentState.uid,
 			)
-		} catch (e: Exception) {
-			throw e
+		} catch (_: Exception) {
+			return ""
 		}
 	}
 
