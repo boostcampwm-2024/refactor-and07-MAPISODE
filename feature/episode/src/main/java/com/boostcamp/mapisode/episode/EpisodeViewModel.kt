@@ -35,6 +35,9 @@ class EpisodeViewModel @Inject constructor(
 	private val groupRepository: GroupRepository,
 	private val naverMapsRepository: NaverMapsRepository,
 	private val imageCaptionRepository: ImageCaptionRepository,
+	private val translationRepository: TranslationRepository,
+	private val llmRepository: LlmRepository,
+	private val objectDetectionRepository: ObjectDetectionRepository,
 ) : RevisedBaseViewModel<EpisodeIntent, EpisodeState, EpisodeEffect>(EpisodeState()) {
 
 	private val gemini = GenerativeModel(
@@ -142,6 +145,7 @@ class EpisodeViewModel @Inject constructor(
 							}
 						}
 						sendState { copy(isLoading = false) }
+						llmRepository.setLlmInference()
 						sendEffect { EpisodeEffect.NavigateBackToHomeScreen }
 					}
 				}
@@ -203,6 +207,7 @@ class EpisodeViewModel @Inject constructor(
 	private fun navigateToInfoScreen() {
 		if (currentState.episodeAddress.isNotBlank() && currentState.selectedGroups.isNotEmpty()) {
 			getImageCaption(currentState.imageUrls)
+			setTranslationInstance()
 			sendEffect { EpisodeEffect.NavigateToContentScreen }
 		} else {
 			sendEffect { EpisodeEffect.ShowToast("위치와 그룹을 선택해주세요.") }
@@ -211,11 +216,26 @@ class EpisodeViewModel @Inject constructor(
 
 	private fun getImageCaption(imageUrls: List<String>) {
 		viewModelScope.launch {
+			// azure image captioning api
 			val imageCaption = imageUrls.map {
 				imageCaptionRepository.generateImageCaption(it)
 			}.joinToString("\n") { it.joinToString(",") }
-			sendState { copy(imageCaption = imageCaption) }
-			Timber.e("imageCaption: $imageCaption")
+
+			// google on-device object detection
+			objectDetectionRepository.setObjectDetector()
+			val objectDetectionResult = imageUrls.map {
+				objectDetectionRepository.detect(it)
+			}.joinToString("\n") { it.joinToString(",") }
+
+			sendState { copy(imageCaption = objectDetectionResult) }
+			Timber.e("imageCaption: $objectDetectionResult")
+		}
+	}
+
+	private fun setTranslationInstance() {
+		translationRepository.setEnglishKoreanTranslator()
+		if (!translationRepository.isModelReady) {
+			translationRepository.downloadModel()
 		}
 	}
 
@@ -272,14 +292,35 @@ $userInputText
 - 만약 내가 작성한 글이 비어 있다면, 사진 상황을 기반으로 감정이나 생각을 추론해서 작성해줘.
 - 단, 추론한 내용은 **사진 설명을 그대로 반복하지 말고**, 감정적인 해석을 포함해야 해.
 			""".trimIndent()
-			val episodes =
-				gemini.generateContent(prompt).text?.split("##")?.drop(1)?.map { it.trim() }
-					?: emptyList()
-			sendState {
-				copy(
-					generatedEpisodes = episodes.toPersistentList(),
-					isLoading = false,
+// 			val episodes =
+// 				gemini.generateContent(prompt).text?.split("##")?.drop(1)?.map { it.trim() }
+// 					?: emptyList()
+
+			val episodes = llmRepository.generateLlm(prompt).split("##").map { it.trim() }
+			val translatedEpisodes = mutableListOf<String>()
+			var isTranslated = false
+			episodes.forEach {
+				translationRepository.translate(
+					text = it,
+					onSuccess = { translatedText ->
+						translatedEpisodes.add(translatedText)
+					},
+					onFailure = { error ->
+						Timber.e("Translation failed: $error")
+					},
+					onComplete = { isTranslated = true },
 				)
+			}
+			while (!isTranslated) {
+				delay(100)
+				if (isTranslated) {
+					sendState {
+						copy(
+							generatedEpisodes = translatedEpisodes.toPersistentList(),
+							isLoading = false,
+						)
+					}
+				}
 			}
 		}
 	}
@@ -287,5 +328,8 @@ $userInputText
 	override fun onCleared() {
 		super.onCleared()
 		Timber.e("EpisodeViewModel onCleared")
+		llmRepository.close()
+		objectDetectionRepository.close()
+		translationRepository.close()
 	}
 }

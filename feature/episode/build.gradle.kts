@@ -26,6 +26,8 @@ dependencies {
 	implementation(project.libs.bundles.naverMap)
 	implementation(project.libs.bundles.coil)
 	implementation(project.libs.google.cloud.generativeai)
+	implementation(project.libs.mediapipe.tasks.genai)
+	implementation(project.libs.mediapipe.tasks.vision)
 
 	implementation(projects.core.network)
 	implementation(projects.domain.episode)

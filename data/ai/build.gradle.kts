@@ -21,11 +21,15 @@ android {
 
 	buildFeatures {
 		buildConfig = true
+		mlModelBinding = true
 	}
 }
 
 dependencies {
 	implementation(libs.mediapipe.tasks.genai)
+	implementation(libs.mediapipe.tasks.vision)
 	implementation(libs.translate)
 	implementation(projects.domain.episode)
+	implementation(libs.tensorflow.lite.support)
+	implementation(libs.tensorflow.lite.metadata)
 }
